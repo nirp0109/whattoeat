@@ -1,0 +1,6 @@
+def main():
+    str = '\u05e0\u05d7\u05e1\u05de\u05ea \u05d1\u05d0\u05e4\u05df \u05d6\u05de\u05e0\u05d9 \u05dc\u05e9\u05d9\u05de\u05d5\u05e9 \u05d1\u05e9\u05d9\u05e8\u05d5\u05ea'
+    print(str)
+
+if __name__ == '__main__':
+    main()
