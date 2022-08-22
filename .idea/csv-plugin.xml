@@ -3,7 +3,21 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="\Alias.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\GLN.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\GlutenNuts.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -17,7 +31,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\output.csv">
+        <entry key="\allergens_orig.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
