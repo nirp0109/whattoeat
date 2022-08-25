@@ -12,6 +12,9 @@ import csv
 import pandas as pd
 import copy as clone
 from dotenv import dotenv_values
+import os, zipfile
+import pytesseract
+from PIL import Image
 
 auth = ()
 
@@ -25,9 +28,17 @@ WITHOUT_GLUTEN = 5502
 VEGAN_FRIENDLY = 5573
 VEGAN = 5521
 
+# Product_Shelf_Life - product life span
+# Product_Status - product status (status in hebrew as json)
 
 
 def find_key(somejson, key):
+    """
+    find key in json and return array of values. use when the value of a key is simple string or number
+    :param somejson: string json
+    :param key: string  key to find
+    :return: list of values founded
+    """
     pattern_str = "(?<=\"{}\":\").+?(?=\")".format(key)
     compile_pattern = re.compile(pattern_str)
     data= compile_pattern.findall(somejson)
@@ -35,6 +46,12 @@ def find_key(somejson, key):
 
 
 def find_array(somejson, key):
+    """
+    find key in json and return value. use when the value of a key  is array of strings or numbers
+    :param somejson: string json
+    :param key: string key to find
+    :return: list of values founded (json array)
+    """
     pattern_str = "(?<=\"{}\":\[).+?(?=\])".format(key)
     compile_pattern = re.compile(pattern_str)
     data= compile_pattern.findall(somejson)
@@ -42,6 +59,11 @@ def find_array(somejson, key):
 
 
 def pretty_json(txt):
+    """
+    pretty print json
+    :param txt:
+    :return:
+    """
     parsed = json.loads(txt)
     print(json.dumps(parsed, indent=4, sort_keys=True))
 
@@ -50,7 +72,7 @@ def test_api(name):
     paramters = {"field":"Rabbinate", "hq":"1"}
     # get all products modification in last 120 days
     url = 'https://fe.gs1-hq.mk101.signature-it.com/external/app_query/select_query.json'
-    body = {"query": "modification_timestamp > DATE_SUB(NOW(), INTERVAL 120 DAY)","get_chunks":{ "start": 0, "rows": 600 }}
+    body = {"query": "modification_timestamp > DATE_SUB(NOW(), INTERVAL 1 DAY)","get_chunks":{ "start": 0, "rows": 600 }}
     # body = {"query": "modification_timestamp > DATE_SUB(NOW(), INTERVAL 360 DAY)"}
     res = requests.request(method="post", url=url, auth=auth, json=body)
     print(res.status_code)
@@ -112,12 +134,20 @@ def test_api(name):
 
 
 def download_media_product(product_code:str):
+    """
+    use GS1 api to download media files of a product. save as zip file or media file with prefix of product code
+    :param product_code: string product code
+    """
     url="https://fe.gs1-retailer.mk101.signature-it.com//external/product/{}/files?media=all&hq=1".format(product_code)
     print(url)
     res = requests.request(method="get", url=url, auth=auth)
     if res.status_code == 200:
-        with open('{}.zip'.format(product_code),'wb') as fd:
-            fd.write(base64.decodebytes(res.text.encode('utf-8')))
+        json_data = json.loads(res.text)
+        print(json_data.keys())
+        data = json_data['file']
+        format_type = json_data['format']
+        with open('{}.{}'.format(product_code, format_type),'wb') as fd:
+            fd.write(base64.decodebytes(data.encode('ascii')))
 
 
 
@@ -258,6 +288,12 @@ def get_product_ingrident(product_details:str):
     return  ingrdients_list
 
 def get_normalize_allergens_dict(file_name:str):
+    """
+    get normalize allergen dict from csv file.
+    Each line in the csv file is a list of the same allergen.
+    :param file_name:
+    :return: dict<str, str> allergen dict where all alleregens from the same line are mapped to the first allergen in the line
+    """
     #read csv file
     with open(file_name, 'r', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile)
@@ -451,12 +487,6 @@ def product_test(product_code:str):
     # test that there is details of allergens in allergens labels
     for key in allergens_family_dict.keys():
         if key in allergen_in_ingredients_set or key in allergen_contain_set or key in allergen_may_contain_set:
-            key_allergens_list =  transfrom_allergen_set_to_alis_set(allergens_family_dict[key], alias)
-            # find if key is a whole word in alleren_contain_set or allergen_may_contain_set
-            # key_found_allergens_contain = extract_allergens_from_ingredients(list(allergen_contain_set), key_allergens_list)
-            # key_found_allergens_may_contain = extract_allergens_from_ingredients(list(allergen_may_contain_set), key_allergens_list)
-
-            # if ((key in allergen_contain_set) and (len(key_found_allergens_contain) == 0)) or ((key in allergen_may_contain_set) and (len(key_found_allergens_may_contain) == 0)):
             if key in allergen_contain_set or key in allergen_may_contain_set:
                 exception = 'there is not details of {} contain'.format(en_heb_dict[key])
                 print(exception)
@@ -464,29 +494,6 @@ def product_test(product_code:str):
                 results.append(record)
                 record = clone.deepcopy(record)
 
-
-    # if 'אגוזים' in allergen_in_ingredients_set or 'אגוזים' in allergen_contain_set or 'אגוזים' in allergen_may_contain_set:
-    #     nut_allergens_list =  allergens_dict['אגוזים']
-    #     nuts_found_ingredients = extract_allergens_from_ingredients(data, nut_allergens_list)
-    #     nuts_found_allergens_contain = extract_allergens_from_ingredients(list(allergen_contain_set), nut_allergens_list)
-    #     nuts_found_allergens_may_contain = extract_allergens_from_ingredients(list(allergen_may_contain_set), nut_allergens_list)
-    #     if (len(nuts_found_ingredients) == 0) and (len(nuts_found_allergens_contain) == 0 or len(nuts_found_allergens_may_contain) == 0):
-    #         print('there is not details of nuts contain')
-    #         exception = 'there is not details of nuts contain'
-    #         record[EXCEPTION_INDEX] = exception
-    #         results.append(record)
-    #         record = clone.deepcopy(record)
-    #
-    # if 'גלוטן' in allergen_in_ingredients_set or 'גלוטן' in allergen_contain_set or 'גלוטן' in allergen_may_contain_set:
-    #     gluten_allergens_list = allergens_dict['גלוטן']
-    #     gluten_found_ingredients = extract_allergens_from_ingredients(data, gluten_allergens_list)
-    #     gluten_found_allergens_contain = extract_allergens_from_ingredients(list(allergen_contain_set), gluten_allergens_list)
-    #     gluten_found_allergens_may_contain = extract_allergens_from_ingredients(list(allergen_may_contain_set), gluten_allergens_list)
-    #     if (len(gluten_found_ingredients) == 0) and (len(gluten_found_allergens_contain) == 0 or len(gluten_found_allergens_may_contain) == 0):
-    #         print('there is not details of gluten contain')
-    #         exception = 'there is not details of gluten contain'
-    #         record[EXCEPTION_INDEX] = exception
-    #         results.append(record)
 
     return results
 
@@ -499,6 +506,11 @@ def int_code_value_from_json(item):
 
 
 def find_product_code_by_gtin(gtin:str):
+    """
+    find product code by gtin using the GS1 api.
+    :param gtin:
+    :return:
+    """
     url = 'https://fe.gs1-hq.mk101.signature-it.com/external/app_query/select_query.json'
     body = {"query": "GTIN = '{}'".format(gtin), "get_chunks": {"start": 0, "rows": 5}}
     res = requests.request(method="post", url=url, auth=auth, json=body)
@@ -509,9 +521,9 @@ def find_product_code_by_gtin(gtin:str):
 
 def get_company_products(gln:str):
     """
-    get products codes of a company
-    :param gln: str gln of a company/manufactor
-    :return: list of str of product codes
+    get products codes of a company or manufactur using the GS1 api.
+    :param gln: str gln of a company or manufactur
+    :return: list<str>  product codes list
     """
     products = []
     # get all products modification in last 120 days
@@ -550,6 +562,11 @@ def test_and_add_exception_to_report(product_code:str, writer:csv.DictWriter):
 
     return product_code
 def create_report(gln:str = '7290009800005'):
+    """
+    create a report of all products of a company or manufactur
+    :param gln: str the company or manufactur gln
+    :return: None
+    """
     field_names = [PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX]
     with open('{}_report.csv'.format(gln),'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
@@ -562,15 +579,61 @@ def create_report(gln:str = '7290009800005'):
                 writer.writerows(results)
 
 
+def get_allergens_from_image(image_path:str, allergens_list:list):
+    """
+    extract allergens from image    
+    :param product_image_path: str path of the image
+    :param allergens_list: list of allergens
+    :return: list of allergens found in the image
+    """""
+    match_allergens = []
+    text = pytesseract.image_to_data(Image.open(image_path), lang='heb', output_type=pytesseract.Output.DATAFRAME)
+    print(text.to_string())
+    for allergen in allergens_list:
+        if allergen in text:
+            match_allergens.append(allergen)
+    return match_allergens
+
+
+
+
+
+def get_allergens_from_product_images(product_code:str, allergen_list:list):
+    """
+    download product media as zip
+    for each image in the zip, get allergens
+    :param product_code: str
+    :return: allergens
+    """
+    download_media_product(product_code)
+    with zipfile.ZipFile('{}.zip'.format(product_code), 'r') as zip_ref:
+        zip_ref.extractall('{}_images'.format(product_code))
+    allergens = set()
+    for file in os.listdir('{}_images'.format(product_code)):
+        if file.endswith('.jpg'):
+            allergens.add(get_allergens_from_image('{}_images/{}'.format(product_code, file), allergen_list))
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    """
+    main entry point
+    can execute the script with a product code or a company gln
+    for example:
+    1. create a report of all products of a company or manufactur using the GS1 api, execute the script with the gln of the company or manufactur like this:
+    python3 main.py -c 7290009800005
+    2. create a test for a product using the GS1 api, execute the script with the product code like this:
+    python3 main.py -p 7290112341723 
+    3. create a test for medias of the product using the GS1 api, execute the script with the product code like this:
+    python3 main.py -s 7290112341723        
+    """
     (user, password) = dotenv_values('.env').values()
     auth = (user, password)
-    my_parser = argparse.ArgumentParser(description="for test a given product(-p) or a company(-c)")
+    my_parser = argparse.ArgumentParser(description="for test a given product(-p) or a company(-c) a product image (-s)")
     my_group = my_parser.add_mutually_exclusive_group(required=True)
 
     my_group.add_argument('-p', action='store', help='test a given product given')
     my_group.add_argument('-c', action='store', help="test all product of given company")
+    my_group.add_argument('-s', action='store', help="scan given product for allergens")
 
     args = my_parser.parse_args()
     actions = vars(args)
@@ -585,14 +648,9 @@ if __name__ == '__main__':
     if 'c' in actions and actions['c']:
         create_report(actions['c'])
 
-# create_report()
-
-    # product_code = find_product_code_by_gtin('7290000076997')
-    # print(product_code)
-    # res = product_test(product_code[0])
-    # print(res)
-
-    # test_api("")
+    if 's' in actions and actions['s']:
+        product_code = find_product_code_by_gtin(actions['s'])
+        get_allergens_from_product_images(product_code[0], [])
 
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
