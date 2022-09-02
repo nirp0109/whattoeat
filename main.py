@@ -570,39 +570,30 @@ def create_report(gln:str = '7290009800005'):
             if results and len(results) > 0:
                 writer.writerows(results)
 
+def get_updated_products():
+    """
+    get a list of products udpated for the last day from now using GS1 API
+    :return: list<str> products codes
+    """
+    url = 'https://fe.gs1-hq.mk101.signature-it.com/external/app_query/select_query.json'
+    body = {"query": "modification_timestamp > DATE_SUB(NOW(), INTERVAL 1 DAY)","get_chunks":{ "start": 0, "rows": 600 }}
+    res = requests.request(method="post", url=url, auth=auth, json=body)
+    print(res.status_code)
+    products_temp = find_key(res.text, 'product_code')
+    products = []
+    products.extend(products_temp)
+    print(len(products))
+    while len(products_temp) == 600:
+        body = {"query": "modification_timestamp > DATE_SUB(NOW(), INTERVAL 1 DAY)",
+                "get_chunks": {"start": len(products), "rows": 600}}
+        res = requests.request(method="post", url=url, auth=auth, json=body)
+        products_temp = find_key(res.text, 'product_code')
+        if len(products_temp) > 0:
+            products.extend(products_temp)
+            print(len(products))
+    return products
 
-# def get_allergens_from_image(image_path:str, allergens_list:list):
-#     """
-#     extract allergens from image
-#     :param product_image_path: str path of the image
-#     :param allergens_list: list of allergens
-#     :return: list of allergens found in the image
-#     """""
-#     match_allergens = []
-#     text = pytesseract.image_to_data(Image.open(image_path), lang='heb', output_type=pytesseract.Output.DATAFRAME)
-#     print(text.to_string())
-#     for allergen in allergens_list:
-#         if allergen in text:
-#             match_allergens.append(allergen)
-#     return match_allergens
 
-
-# def get_allergens_from_product_images(product_code:str, allergen_list:list):
-#     """
-#     download product media as zip
-#     for each image in the zip, get allergens
-#     :param product_code: str
-#     :return: allergens
-#     """
-#     download_media_product(product_code)
-#     with zipfile.ZipFile('{}.zip'.format(product_code), 'r') as zip_ref:
-#         zip_ref.extractall('{}_images'.format(product_code))
-#     allergens = set()
-#     for file in os.listdir('{}_images'.format(product_code)):
-#         if file.endswith('.jpg'):
-#             allergens.add(get_allergens_from_image('{}_images/{}'.format(product_code, file), allergen_list))
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     """
     main entry point
@@ -612,16 +603,20 @@ if __name__ == '__main__':
     python3 main.py -c 7290009800005
     2. create a test for a product using the GS1 api, execute the script with the product code like this:
     python3 main.py -p 7290112341723 
-    3. create a test for medias of the product using the GS1 api, execute the script with the product code like this:
-    python3 main.py -s 7290112341723        
+    3. get the updated products list of companies or manufacturs using the GS1 api for the last day. execute the script like this:
+    python3 main.py -u  
+    4. create report for the updated products list of companies or manufacturs using the GS1 api for the last day. execute the script like this:
+    python3 main.py -s
     """
     (user, password) = dotenv_values('.env').values()
     auth = (user, password)
-    my_parser = argparse.ArgumentParser(description="for test a given product(-p) or a company(-c) ")
+    my_parser = argparse.ArgumentParser(description="for test a given product(-p) or a company(-c) or get updated products list(-u) or create report foe updated products list(-s)")
     my_group = my_parser.add_mutually_exclusive_group(required=True)
 
     my_group.add_argument('-p', action='store', help='test a given product given')
     my_group.add_argument('-c', action='store', help="test all product of given company")
+    my_group.add_argument('-u', action='store_true', help="get updated products list")
+    my_group.add_argument('-s', action='store_true', help="create report for the updated products list")
 
     args = my_parser.parse_args()
     actions = vars(args)
@@ -635,4 +630,18 @@ if __name__ == '__main__':
 
     if 'c' in actions and actions['c']:
         create_report(actions['c'])
+
+    if 'u' in actions and actions['u']:
+        get_updated_products()
+
+    if 's' in actions and actions['s']:
+        products = get_updated_products()
+        field_names = [PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX]
+        with open('updated_products_report.csv', 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=field_names)
+            writer.writeheader()
+            for product_code in products:
+                results = product_test(product_code)
+                if results and len(results) > 0:
+                    writer.writerows(results)
 
