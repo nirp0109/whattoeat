@@ -1,9 +1,4 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import base64
-from operator import itemgetter
 import argparse
 import requests
 import json
@@ -12,9 +7,6 @@ import csv
 import pandas as pd
 import copy as clone
 from dotenv import dotenv_values
-import os, zipfile
-import pytesseract
-from PIL import Image
 
 auth = ()
 
@@ -579,39 +571,36 @@ def create_report(gln:str = '7290009800005'):
                 writer.writerows(results)
 
 
-def get_allergens_from_image(image_path:str, allergens_list:list):
-    """
-    extract allergens from image    
-    :param product_image_path: str path of the image
-    :param allergens_list: list of allergens
-    :return: list of allergens found in the image
-    """""
-    match_allergens = []
-    text = pytesseract.image_to_data(Image.open(image_path), lang='heb', output_type=pytesseract.Output.DATAFRAME)
-    print(text.to_string())
-    for allergen in allergens_list:
-        if allergen in text:
-            match_allergens.append(allergen)
-    return match_allergens
+# def get_allergens_from_image(image_path:str, allergens_list:list):
+#     """
+#     extract allergens from image
+#     :param product_image_path: str path of the image
+#     :param allergens_list: list of allergens
+#     :return: list of allergens found in the image
+#     """""
+#     match_allergens = []
+#     text = pytesseract.image_to_data(Image.open(image_path), lang='heb', output_type=pytesseract.Output.DATAFRAME)
+#     print(text.to_string())
+#     for allergen in allergens_list:
+#         if allergen in text:
+#             match_allergens.append(allergen)
+#     return match_allergens
 
 
-
-
-
-def get_allergens_from_product_images(product_code:str, allergen_list:list):
-    """
-    download product media as zip
-    for each image in the zip, get allergens
-    :param product_code: str
-    :return: allergens
-    """
-    download_media_product(product_code)
-    with zipfile.ZipFile('{}.zip'.format(product_code), 'r') as zip_ref:
-        zip_ref.extractall('{}_images'.format(product_code))
-    allergens = set()
-    for file in os.listdir('{}_images'.format(product_code)):
-        if file.endswith('.jpg'):
-            allergens.add(get_allergens_from_image('{}_images/{}'.format(product_code, file), allergen_list))
+# def get_allergens_from_product_images(product_code:str, allergen_list:list):
+#     """
+#     download product media as zip
+#     for each image in the zip, get allergens
+#     :param product_code: str
+#     :return: allergens
+#     """
+#     download_media_product(product_code)
+#     with zipfile.ZipFile('{}.zip'.format(product_code), 'r') as zip_ref:
+#         zip_ref.extractall('{}_images'.format(product_code))
+#     allergens = set()
+#     for file in os.listdir('{}_images'.format(product_code)):
+#         if file.endswith('.jpg'):
+#             allergens.add(get_allergens_from_image('{}_images/{}'.format(product_code, file), allergen_list))
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -628,12 +617,11 @@ if __name__ == '__main__':
     """
     (user, password) = dotenv_values('.env').values()
     auth = (user, password)
-    my_parser = argparse.ArgumentParser(description="for test a given product(-p) or a company(-c) a product image (-s)")
+    my_parser = argparse.ArgumentParser(description="for test a given product(-p) or a company(-c) ")
     my_group = my_parser.add_mutually_exclusive_group(required=True)
 
     my_group.add_argument('-p', action='store', help='test a given product given')
     my_group.add_argument('-c', action='store', help="test all product of given company")
-    my_group.add_argument('-s', action='store', help="scan given product for allergens")
 
     args = my_parser.parse_args()
     actions = vars(args)
@@ -647,11 +635,4 @@ if __name__ == '__main__':
 
     if 'c' in actions and actions['c']:
         create_report(actions['c'])
-
-    if 's' in actions and actions['s']:
-        product_code = find_product_code_by_gtin(actions['s'])
-        get_allergens_from_product_images(product_code[0], [])
-
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
