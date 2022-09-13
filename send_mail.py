@@ -16,14 +16,12 @@ import google.auth
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-def gmail_send_message(recipients, subject, message_text, attchment_file=None):
+def gmail_send_message(recipients, subject, message_text, attachment_filename=None):
     """Create and send an email message
-    Print the returned  message id
-    Returns: Message object, including message id
-
-    Load pre-authorized user credentials from the environment.
-    TODO(developer) - See https://developers.google.com/identity
-    for guides on implementing OAuth2 for the application.
+    :param recipients: list of recipients
+    :param subject: subject of the email
+    :param message_text: message to be sent
+    :param attachment_filename: file to be attached
     """
     # test if pickle file exists
     if os.path.exists('token.pickle'):
@@ -61,8 +59,6 @@ def gmail_send_message(recipients, subject, message_text, attchment_file=None):
             message_text
         )
 
-        # attachment
-        attachment_filename = 'GLN.csv'
         # guessing the MIME type
         type_subtype, _ = mimetypes.guess_type(attachment_filename)
         maintype, subtype = type_subtype.split('/')
