@@ -65,8 +65,14 @@ def gmail_send_message(recipients, subject, message_text, attachment_filename=No
 
         with open(attachment_filename, 'rb') as fp:
             attachment_data = fp.read()
-        mime_message.add_attachment(attachment_data, maintype, subtype)
-        # encoded message
+
+        mime_message.add_attachment(
+            attachment_data,
+            maintype=maintype,
+            subtype=subtype,
+            filename=os.path.basename(attachment_filename)
+        )
+
         encoded_message = base64.urlsafe_b64encode(mime_message.as_bytes()).decode()
 
         create_message = {
@@ -82,7 +88,39 @@ def gmail_send_message(recipients, subject, message_text, attachment_filename=No
     return send_message
 
 
+def build_file_part(file):
+    """Creates a MIME part for a file.
+
+    Args:
+      file: The path to the file to be attached.
+
+    Returns:
+      A MIME part that can be attached to a message.
+    """
+    content_type, encoding = mimetypes.guess_type(file)
+
+    if content_type is None or encoding is not None:
+        content_type = 'application/octet-stream'
+    main_type, sub_type = content_type.split('/', 1)
+    if main_type == 'text':
+        with open(file, 'rb'):
+            msg = MIMEText('r', _subtype=sub_type)
+    elif main_type == 'image':
+        with open(file, 'rb'):
+            msg = MIMEImage('r', _subtype=sub_type)
+    elif main_type == 'audio':
+        with open(file, 'rb'):
+            msg = MIMEAudio('r', _subtype=sub_type)
+    else:
+        with open(file, 'rb') as fp:
+            msg = MIMEBase(main_type, sub_type)
+            msg.set_payload(fp.read())
+    filename = os.path.basename(file)
+    msg.add_header('Content-Disposition', 'attachment', filename=filename)
+    return msg
+
+
 if __name__ == '__main__':
     attach_file = 'GLN.csv'
     recipients = ['nirp0109@gmail.com', 'nirp_98@yahoo.com']
-    gmail_send_message(recipients=recipients, subject='test with attachment', message_text='Please do not reply.', attchment_file=attach_file)
+    gmail_send_message(recipients=recipients, subject='test with attachment', message_text='Please do not reply.', attachment_filename=attach_file)
