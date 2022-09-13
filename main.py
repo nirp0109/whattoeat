@@ -351,7 +351,7 @@ def product_test(product_code:str):
         return
 
     report_fields = [PRODUCT_ID_INDEX, 'BrandName', PRODUCT_NAME_INDEX, 'Trade_Item_Description', 'Short_Description',
-                      'Ingredient_Sequence_and_Name']
+                      'Ingredient_Sequence_and_Name', 'Product_Categories_Classification']
     for key in report_fields:
         try:
             val = find_key(product_info, key)
@@ -559,7 +559,7 @@ def create_report(gln:str = '7290009800005'):
     :param gln: str the company or manufactur gln
     :return: None
     """
-    field_names = [PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX]
+    field_names = [PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX, 'Product_Categories_Classification']
     with open('{}_report.csv'.format(gln),'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
@@ -578,6 +578,7 @@ def get_updated_products():
     url = 'https://fe.gs1-hq.mk101.signature-it.com/external/app_query/select_query.json'
     body = {"query": "modification_timestamp > DATE_SUB(NOW(), INTERVAL 1 DAY)","get_chunks":{ "start": 0, "rows": 600 }}
     res = requests.request(method="post", url=url, auth=auth, json=body)
+    print(res.text)
     print(res.status_code)
     products_temp = find_key(res.text, 'product_code')
     products = []
@@ -593,6 +594,21 @@ def get_updated_products():
             print(len(products))
     return products
 
+
+def inquire_GS1_fields():
+    # all fields
+    url = 'https://fe.gs1-retailer.mk101.signature-it.com/external/product/fieldInfo.json?field=All&hq=1'
+    # may contain allergen
+    # url = 'https://fe.gs1-retailer.mk101.signature-it.com/external/product/fieldInfo.json?field=Allergen_Type_Code_and_Containment_May_Contain&hq=1'
+    # contain allergen
+    # url = 'https://fe.gs1-retailer.mk101.signature-it.com/external/product/fieldInfo.json?field=Allergen_Type_Code_and_Containment&hq=1'
+
+    # url = 'https://fe.gs1-retailer.mk101.signature-it.com/external/product/fieldInfo.json?field=Ingredient_Sequence_and_Name&hq=1'
+
+    url = 'https://fe.gs1-retailer.mk101.signature-it.com/external/product/fieldInfo.json?field=Brand_Name&hq=1'
+    res = requests.request(method="get", url=url, auth=auth)
+    print(res.text.encode('utf8'))
+    pretty_json(res.text)
 
 if __name__ == '__main__':
     """
@@ -636,7 +652,7 @@ if __name__ == '__main__':
 
     if 's' in actions and actions['s']:
         products = get_updated_products()
-        field_names = [PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX]
+        field_names = [PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX, 'Product_Categories_Classification']
         with open('updated_products_report.csv', 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=field_names)
             writer.writeheader()
@@ -645,3 +661,4 @@ if __name__ == '__main__':
                 if results and len(results) > 0:
                     writer.writerows(results)
 
+    inquire_GS1_fields()
