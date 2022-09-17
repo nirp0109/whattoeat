@@ -55,9 +55,15 @@ def gmail_send_message(recipients, subject, message_text, attachment_filename=No
         mime_message['Subject'] = subject
 
         # text
-        mime_message.set_content(
-            message_text
-        )
+        if "</html>" in message_text:
+            # html
+            mime_message.add_header('Content-Type', 'text/html')
+            mime_message.set_payload(message_text)
+        else:
+            mime_message.set_content(
+                message_text
+            )
+
 
         # guessing the MIME type
         type_subtype, _ = mimetypes.guess_type(attachment_filename)
@@ -78,6 +84,8 @@ def gmail_send_message(recipients, subject, message_text, attachment_filename=No
         create_message = {
             'raw': encoded_message
         }
+
+
         # pylint: disable=E1101
         send_message = (service.users().messages().send
                         (userId="me", body=create_message).execute())
@@ -123,4 +131,10 @@ def build_file_part(file):
 if __name__ == '__main__':
     attach_file = 'GLN.csv'
     recipients = ['nirp0109@gmail.com', 'nirp_98@yahoo.com']
-    gmail_send_message(recipients=recipients, subject='test with attachment', message_text='Please do not reply.', attachment_filename=attach_file)
+    with open("whattoeat.png", 'rb') as f:
+        data = f.read()
+    image_base64 = base64.b64encode(data).decode()
+    image_data = f"data:image/png;base64,{image_base64}"
+    message =f"""<html><h1>Please do not reply.</h1><h2>this is only for reports</h2><div><p>Taken from wikpedia</p><img src="{image_data}"></div></html>"""
+    print(message)
+    gmail_send_message(recipients=recipients, subject='test with attachment', message_text=message, attachment_filename=attach_file)
