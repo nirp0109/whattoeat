@@ -620,7 +620,8 @@ if __name__ == '__main__':
     1. create a report of all products of a company or manufactur using the GS1 api, execute the script with the gln of the company or manufactur like this:
     python3 main.py -c 7290009800005
     2. create a test for a product using the GS1 api, execute the script with the product code like this:
-    python3 main.py -p 7290112341723 
+    python3 main.py -p    7290112341723
+    python3 main.py -p    7290018724699 
     3. get the updated products list of companies or manufacturs using the GS1 api for the last day. execute the script like this:
     python3 main.py -u  
     4. create report for the updated products list of companies or manufacturs using the GS1 api for the last day. execute the script like this:
