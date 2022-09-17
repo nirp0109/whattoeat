@@ -206,7 +206,7 @@ def load_allergens_from_cvs():
         for item in allergens_dict[key]:
             allergen_group[item] = key
         # get all cells of table (without header)
-        for elem in vec[1:]:
+        for elem in vec: # vec[1:]
             if type(elem)==str:
                 allergens.append(elem.strip())
 
