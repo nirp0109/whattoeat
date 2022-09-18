@@ -8,6 +8,7 @@ import pandas as pd
 import copy as clone
 import send_mail
 from dotenv import dotenv_values
+from itertools import combinations
 
 auth = ()
 
@@ -321,8 +322,9 @@ def extract_allergens_from_ingredients(ingredients:list, allergens:list):
         #create set with one elments or more of one word
         ingredient_tokens_set = set(ingredient_tokens)
         #get tokens of two words and clean empty tokens and make set
-        ingredient_tokens_pharse = re.findall(r'[\u0590-\u05fe]+\s+?[\u0590-\u05fe]+', ingredient)
-        ingrident_tokens_pharse_set = set(list(filter(None, ingredient_tokens_pharse)))
+        two_word_phases = list(map(lambda x: x[0] + ' ' + x[1], combinations(ingredient_tokens, 2)))
+        # ingredient_tokens_pharse = re.findall('|'.join(two_word_phases), ingredient)
+        ingrident_tokens_pharse_set = set(list(filter(None, two_word_phases)))
         #intersect words found with allergens set to find allergens in ingredient
         intersect = ingredient_tokens_set.intersection(allerenes_set)
         intersect2 = ingrident_tokens_pharse_set.intersection(allerenes_set)
@@ -380,6 +382,8 @@ def product_test(product_code:str):
     allergens, allergens_dict, allergens_family_dict, allergens_group, alias = load_allergens_from_cvs()
     # find allergen in ingredients in united name using alias
     allergen_in_ingredients_set = transfrom_allergen_set_to_alis_set(extract_allergens_from_ingredients(data, allergens), alias)
+    # remove גלוטן from allergens_in_ingredients
+    allergen_in_ingredients_set.discard('גלוטן')
     print(">>>>", allergen_in_ingredients_set)
     # get alleregen contain and may contain from product info(labels)
     pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment')
@@ -480,13 +484,12 @@ def product_test(product_code:str):
 
     # test that there is details of allergens in allergens labels
     for key in allergens_family_dict.keys():
-        if key in allergen_in_ingredients_set or key in allergen_contain_set or key in allergen_may_contain_set:
-            if key in allergen_contain_set or key in allergen_may_contain_set:
-                exception = 'there is not details of {} contain'.format(en_heb_dict[key])
-                print(exception)
-                record[EXCEPTION_INDEX] = exception
-                results.append(record)
-                record = clone.deepcopy(record)
+        if key in allergen_contain_set or key in allergen_may_contain_set:
+            exception = 'there is not details of {} contain'.format(en_heb_dict[key])
+            print(exception)
+            record[EXCEPTION_INDEX] = exception
+            results.append(record)
+            record = clone.deepcopy(record)
 
 
     return results
@@ -597,6 +600,20 @@ def get_updated_products():
     return products
 
 
+def get_companies():
+    """
+    get all companies from GLN.csv file by collecting the first column from the the second row and on (the first row is the header)
+    :return: list<str> companies gln
+    """
+    companies = []
+    with open('GLN.csv', 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+        for row in data[1:]:
+            companies.append(row[0])
+    return companies
+
+
 def inquire_GS1_fields():
     # all fields
     url = 'https://fe.gs1-retailer.mk101.signature-it.com/external/product/fieldInfo.json?field=All&hq=1'
@@ -636,6 +653,7 @@ if __name__ == '__main__':
     my_group.add_argument('-c', action='store', help="test all product of given company")
     my_group.add_argument('-u', action='store_true', help="get updated products list")
     my_group.add_argument('-s', action='store_true', help="create report for the updated products list")
+    my_group.add_argument('-a', action='store_true', help="create reports for all companies")
 
     args = my_parser.parse_args()
     actions = vars(args)
@@ -664,5 +682,10 @@ if __name__ == '__main__':
                 if results and len(results) > 0:
                     writer.writerows(results)
         send_mail.gmail_send_message(recipients=['nirp0109@gmail.com', 'horelad@gmail.com'], subject='updated products report', message_text='updated products report attached', attachment_filename='updated_products_report.csv')
+
+    if 'a' in actions and actions['a']:
+        companies = get_companies()
+        for company in companies:
+            create_report(company)
 
     inquire_GS1_fields()
