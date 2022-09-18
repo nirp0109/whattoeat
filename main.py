@@ -129,12 +129,13 @@ def test_api(name):
             fd.write(base64.decodebytes(res.text.encode('utf-8')))
 
 
-def download_media_product(product_code:str):
+def download_media_product(product_code:str, id:str="all"):
     """
     use GS1 api to download media files of a product. save as zip file or media file with prefix of product code
     :param product_code: string product code
+    :param id: string media id or "all" for all media files
     """
-    url="https://fe.gs1-retailer.mk101.signature-it.com//external/product/{}/files?media=all&hq=1".format(product_code)
+    url="https://fe.gs1-retailer.mk101.signature-it.com//external/product/{}/files?media={}&hq=1".format(product_code, id)
     print(url)
     res = requests.request(method="get", url=url, auth=auth)
     if res.status_code == 200:
@@ -267,6 +268,9 @@ def get_product_info(product_code:str):
         return res.text
     else:
         print(res.status_code, res.text)
+        if res.text and '[' in res.text and ']' in res.text:
+        # print the hebrew of res.text
+            print(res.text[1:-1].encode('utf-8').decode('unicode_escape'))
 
 
 def get_product_ingrident(product_details:str):
@@ -686,7 +690,21 @@ if __name__ == '__main__':
         create_report(actions['c'])
 
     if 'u' in actions and actions['u']:
-        get_updated_products()
+        # get updated products list
+        products = get_updated_products()
+        for product in products:
+            # get product info
+            product_info = get_product_info(product)
+            # if product exist get it data
+            if product_info:
+                # get it main media
+                medias = find_array(product_info, 'media_assets')
+                if medias:
+                    for media in medias:
+                        download_media_product(product_code, media)
+
+
+
 
     if 's' in actions and actions['s']:
         products = get_updated_products()
