@@ -143,7 +143,7 @@ def download_media_product(product_code:str, id:str="all"):
         print(json_data.keys())
         data = json_data['file']
         format_type = json_data['format']
-        with open('{}.{}'.format(product_code, format_type),'wb') as fd:
+        with open('{}.{}'.format('{}_{}'.format(product_code, id), format_type),'wb') as fd:
             fd.write(base64.decodebytes(data.encode('ascii')))
 
 
@@ -700,8 +700,11 @@ if __name__ == '__main__':
                 # get it main media
                 medias = find_array(product_info, 'media_assets')
                 if medias:
-                    for media in medias:
-                        download_media_product(product_code, media)
+                    # create array from the json string of the media that come without the square brackets
+                    arr = json.loads('['+medias+']')
+                    # iterate over the array and get all medias
+                    for media in arr:
+                        download_media_product(product, media['id'])
 
 
 
