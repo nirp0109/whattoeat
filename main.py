@@ -7,6 +7,7 @@ import csv
 import pandas as pd
 import copy as clone
 import send_mail
+import string
 from dotenv import dotenv_values
 from itertools import combinations
 
@@ -558,14 +559,18 @@ def test_and_add_exception_to_report(product_code:str, writer:csv.DictWriter):
         writer.writerows(results)
 
     return product_code
-def create_report(gln:str = '7290009800005'):
+def create_report(gln:str = '7290009800005', name=None):
     """
     create a report of all products of a company or manufactur
     :param gln: str the company or manufactur gln
     :return: None
     """
     field_names = [COMPANY_ID_INDEX, PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX, 'Product_Categories_Classification']
-    with open('{}_report.csv'.format(gln),'w', newline='', encoding='utf-8') as csvfile:
+    if name is None:
+        report_file_name = 'report_{}.csv'.format(gln)
+    else:
+        report_file_name = format_filename('report_{}.csv'.format(name))
+    with open(report_file_name,'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         product_codes = get_company_products(gln)
@@ -602,16 +607,28 @@ def get_updated_products():
 
 def get_companies():
     """
-    get all companies from GLN.csv file by collecting the first column from the the second row and on (the first row is the header)
-    :return: list<str> companies gln
+    get all companies from GLN.csv file by collecting from the second row to the end
+    :return: list<list> companies list each element is GLN and his name
     """
     companies = []
     with open('GLN.csv', 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
         data = list(reader)
         for row in data[1:]:
-            companies.append(row[0])
+            companies.append([row[0], row[1]])
     return companies
+
+
+def format_filename(filename):
+    """
+    remove invalid chars from filename
+    :param filename:
+    :return: filename without invalid chars
+    """
+    invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+    for char in invalid_chars:
+        filename = filename.replace(char, '')
+    return filename
 
 
 def inquire_GS1_fields():
@@ -686,6 +703,7 @@ if __name__ == '__main__':
     if 'a' in actions and actions['a']:
         companies = get_companies()
         for company in companies:
-            create_report(company)
+            gln, name = company
+            create_report(gln, name)
 
     inquire_GS1_fields()
