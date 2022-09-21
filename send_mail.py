@@ -46,7 +46,7 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
         msg.attach(part)
 
     #     send message
-    server.sendmail(msg['From'], recipients, msg.as_string())
+    server.sendmail(msg['From'], from_addr=recipients, to_addrs=recipients)
     server.close()
 
 
@@ -166,11 +166,11 @@ def build_file_part(file):
 if __name__ == '__main__':
     attach_file = 'GLN.csv'
     recipients = ['nirp0109@gmail.com', 'nirp_98@yahoo.com']
-    with open("whattoeat.png", 'rb') as f:
-        data = f.read()
-    image_base64 = base64.b64encode(data).decode()
-    image_data = f"data:image/png;base64,{image_base64}"
-    message =f"""<html><h1>Please do not reply.</h1><h2>this is only for reports</h2><div><p>Taken from wikpedia</p><img src="{image_data}"></div></html>"""
+    # with open("whattoeat.png", 'rb') as f:
+    #     data = f.read()
+    # image_base64 = base64.b64encode(data).decode()
+    # image_data = f"data:image/png;base64,{image_base64}"
+    message =f"""<html><h1>Please do not reply.</h1><h2>this is only for reports</h2><div><p>Taken from wikpedia</p></div></html>"""
     print(message)
     # gmail_send_message(recipients=recipients, subject='test with attachment', message_text=message, attachment_filename=attach_file)
     send_email_using_smtp(recipients=recipients, subject='test with attachment', message_text=message, attachment_filename=attach_file)
