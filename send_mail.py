@@ -39,14 +39,16 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
     msg.attach(MIMEText(message_text, 'html'))
     #     attach file if needed
     if attachment_filename:
-        part = build_file_part(attachment_filename)
-        msg.attach(part)
+        with open(attachment_filename, 'r') as f:
+            part = MIMEApplication(f.read(), Name=basename(attachment_filename))
+            part['Content-Disposition'] = 'attachment; filename="{}"'.format(basename(attachment_filename))
+            msg.attach(part)
     #     connect to server
     server = smtplib.SMTP('smtp.dreamhost.com', 587)
     server.login(from_addr, 'xGR*N9fF')
 
     #     send message
-    server.sendmail(msg=msg.as_bytes(),from_addr=from_addr, to_addrs=recipients)
+    server.sendmail(msg=msg,from_addr=from_addr, to_addrs=recipients)
 
 
 
