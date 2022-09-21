@@ -16,6 +16,41 @@ import google.auth
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+import smtplib
+from os.path import basename
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+
+
+def send_email_using_smtp(recipients:list, subject:str, message_text:str, attachment_filename=None):
+    """
+    Send email using SMTP with port 465 and host smtp.dreamhost.com
+    :param recipients: recipients list
+    :param subject: email subject
+    :param message_text: message text body
+    :param attachment_filename: file path to attched if needed
+    """
+    #     connect to server
+    server = smtplib.SMTP_SSL('smtp.dreamhost.com', 465)
+    server.ehlo()
+    server.login('donotreply@allergyfood@my-new-vision.com", "xGR*N9fF')
+    #     create message
+    msg = MIMEMultipart()
+    msg['Subject'] = subject
+    msg['From'] = 'donotreply@allergyfood@my-new-vision.com'
+    msg['To'] = ', '.join(recipients)
+    msg.attach(MIMEText(message_text))
+    #     attach file if needed
+    if attachment_filename:
+        part = build_file_part(attachment_filename)
+        msg.attach(part)
+
+    #     send message
+    server.sendmail(msg['From'], recipients, msg.as_string())
+    server.close()
+
+
+
 def gmail_send_message(recipients, subject, message_text, attachment_filename=None):
     """Create and send an email message
     :param recipients: list of recipients
@@ -137,4 +172,5 @@ if __name__ == '__main__':
     image_data = f"data:image/png;base64,{image_base64}"
     message =f"""<html><h1>Please do not reply.</h1><h2>this is only for reports</h2><div><p>Taken from wikpedia</p><img src="{image_data}"></div></html>"""
     print(message)
-    gmail_send_message(recipients=recipients, subject='test with attachment', message_text=message, attachment_filename=attach_file)
+    # gmail_send_message(recipients=recipients, subject='test with attachment', message_text=message, attachment_filename=attach_file)
+    send_email_using_smtp(recipients=recipients, subject='test with attachment', message_text=message, attachment_filename=attach_file)

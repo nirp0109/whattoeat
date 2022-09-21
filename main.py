@@ -719,7 +719,7 @@ if __name__ == '__main__':
                 results = product_test(product_code)
                 if results and len(results) > 0:
                     writer.writerows(results)
-        send_mail.gmail_send_message(recipients=['nirp0109@gmail.com', 'horelad@gmail.com'], subject='updated products report', message_text='updated products report attached', attachment_filename='updated_products_report.csv')
+        send_mail.send_email_using_smtp(recipients=['nirp0109@gmail.com', 'horelad@gmail.com'], subject='updated products report', message_text='updated products report attached', attachment_filename='updated_products_report.csv')
 
     if 'a' in actions and actions['a']:
         companies = get_companies()
