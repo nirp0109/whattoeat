@@ -41,11 +41,11 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
         part = build_file_part(attachment_filename)
         msg.attach(part)
     #     connect to server
-    server = smtplib.SMTP('smtp.dreamhost.com', 465)
-    server.login('donotreply@allergyfood.my-new-vision.com", "xGR*N9fF')
+    server = smtplib.SMTP('smtp.dreamhost.com', 587)
+    server.login('donotreply@allergyfood.my-new-vision.com', 'xGR*N9fF')
 
     #     send message
-    server.sendmail(msg['From'], from_addr=recipients, to_addrs=recipients)
+    server.sendmail(msg['From'], from_addr=msg['From'], to_addrs=recipients)
 
 
 
