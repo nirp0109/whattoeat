@@ -30,23 +30,23 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
     :param message_text: message text body
     :param attachment_filename: file path to attched if needed
     """
-    #     connect to server
-    server = smtplib.SMTP('smtp.dreamhost.com', 465)
-    server.login('donotreply@allergyfood@my-new-vision.com", "xGR*N9fF')
     #     create message
     msg = MIMEMultipart()
     msg['Subject'] = subject
-    msg['From'] = 'donotreply@allergyfood@my-new-vision.com'
+    msg['From'] = 'donotreply@allergyfood.my-new-vision.com'
     msg['To'] = ', '.join(recipients)
     msg.attach(MIMEText(message_text))
     #     attach file if needed
     if attachment_filename:
         part = build_file_part(attachment_filename)
         msg.attach(part)
+    #     connect to server
+    server = smtplib.SMTP('smtp.dreamhost.com', 465)
+    server.login('donotreply@allergyfood.my-new-vision.com", "xGR*N9fF')
 
     #     send message
     server.sendmail(msg['From'], from_addr=recipients, to_addrs=recipients)
-    server.close()
+
 
 
 
