@@ -43,7 +43,7 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
         msg.attach(part)
     #     connect to server
     server = smtplib.SMTP('smtp.dreamhost.com', 587)
-    server.login('donotreply@allergyfood.my-new-vision.com', 'xGR*N9fF')
+    server.login(from_addr, 'xGR*N9fF')
 
     #     send message
     server.sendmail(msg, from_addr=from_addr, to_addrs=recipients)
