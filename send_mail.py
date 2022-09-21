@@ -31,8 +31,7 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
     :param attachment_filename: file path to attched if needed
     """
     #     connect to server
-    server = smtplib.SMTP_SSL('smtp.dreamhost.com', 465)
-    server.ehlo()
+    server = smtplib.SMTP('smtp.dreamhost.com', 465)
     server.login('donotreply@allergyfood@my-new-vision.com", "xGR*N9fF')
     #     create message
     msg = MIMEMultipart()
