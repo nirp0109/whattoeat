@@ -42,7 +42,7 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
     if attachment_filename:
         with open(attachment_filename, 'r') as f:
             part = MIMEBase('application', "octet-stream")
-            part.set_payload(f.read())
+            part.set_payload(f.read().encode('utf-8'))
 
         encoders.encode_base64(part)
         part.add_header('Content-Disposition', 'attachment; filename="{}"'.format(basename(attachment_filename)))
