@@ -36,7 +36,7 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
     msg['Subject'] = subject
     msg['From'] = from_addr
     msg['To'] = ', '.join(recipients)
-    msg.attach(MIMEText(message_text))
+    msg.attach(MIMEText(message_text, 'html'))
     #     attach file if needed
     if attachment_filename:
         part = build_file_part(attachment_filename)
