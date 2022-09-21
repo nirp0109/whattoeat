@@ -46,7 +46,7 @@ def send_email_using_smtp(recipients:list, subject:str, message_text:str, attach
     server.login(from_addr, 'xGR*N9fF')
 
     #     send message
-    server.sendmail(msg, from_addr=from_addr, to_addrs=recipients)
+    server.sendmail(from_addr=from_addr, to_addrs=recipients,msg=msg)
 
 
 
