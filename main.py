@@ -359,7 +359,7 @@ def product_test(product_code:str):
         print("failed to get product info for {}".format(product_code))
         return
 
-    report_fields = [COMPANY_ID_INDEX, PRODUCT_ID_INDEX, 'BrandName', PRODUCT_NAME_INDEX, 'Trade_Item_Description', 'Short_Description',
+    report_fields = [COMPANY_ID_INDEX, 'Manufacturer_Name',PRODUCT_ID_INDEX, 'BrandName', PRODUCT_NAME_INDEX, 'Trade_Item_Description', 'Short_Description',
                       'Ingredient_Sequence_and_Name', 'Product_Categories_Classification']
     for key in report_fields:
         try:
@@ -569,7 +569,7 @@ def create_report(gln:str = '7290009800005', name=None):
     :param gln: str the company or manufactur gln
     :return: None
     """
-    field_names = [COMPANY_ID_INDEX, PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX, 'Product_Categories_Classification']
+    field_names = [COMPANY_ID_INDEX, 'Manufacturer_Name',PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX, 'Product_Categories_Classification']
     if name is None:
         report_file_name = 'report_{}.csv'.format(gln)
     else:
@@ -711,7 +711,7 @@ if __name__ == '__main__':
 
     if 's' in actions and actions['s']:
         products = get_updated_products()
-        field_names = [COMPANY_ID_INDEX, PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX, 'Product_Categories_Classification']
+        field_names = [COMPANY_ID_INDEX,'Manufacturer_Name', PRODUCT_ID_INDEX, PRODUCT_NAME_INDEX, "Allergens_Contain", "Allergens_May_Contain", 'Ingredient_Sequence_and_Name', 'Diet_Information', 'BrandName', 'Trade_Item_Description', 'Short_Description', EXCEPTION_INDEX, 'Product_Categories_Classification']
         with open('updated_products_report.csv', 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=field_names)
             writer.writeheader()
