@@ -10,6 +10,7 @@ import send_mail
 import string
 from dotenv import dotenv_values
 from itertools import combinations
+import mysql.connector
 
 auth = ()
 
@@ -650,6 +651,28 @@ def inquire_GS1_fields():
     print(res.text.encode('utf8'))
     pretty_json(res.text)
 
+
+def store_product_info(product_info, gln, db_user, db_password, db_name, db_host):
+    """
+    create table of products info if table is not exist and store the product info in it
+    :param product_info: product info as json
+    :param gln: str the company gln
+    :param db_user: str the db user
+    :param db_password: str the db password
+    :param db_name: str the db name
+    :param db_host: str the db host
+    :return: None
+    """
+    mydb = mysql.connector.connect(
+        host=db_host,
+        user=db_user,
+        password=db_password,
+        database=db_name
+    )
+
+    mycursor = mydb.cursor()
+    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS (product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT)")
+
 if __name__ == '__main__':
     """
     main entry point
@@ -664,8 +687,10 @@ if __name__ == '__main__':
     python3 main.py -u  
     4. create report for the updated products list of companies or manufacturs using the GS1 api for the last day. execute the script like this:
     python3 main.py -s
+    5.upload all companies products to the database
+    python3 main.py -d
     """
-    (user, password) = dotenv_values('.env').values()
+    (user, password, hostname, user_d, pass_d, database) = dotenv_values('.env').values()
     auth = (user, password)
     my_parser = argparse.ArgumentParser(description="for test a given product(-p) or a company(-c) or get updated products list(-u) or create report foe updated products list(-s)")
     my_group = my_parser.add_mutually_exclusive_group(required=True)
@@ -675,6 +700,7 @@ if __name__ == '__main__':
     my_group.add_argument('-u', action='store_true', help="get updated products list")
     my_group.add_argument('-s', action='store_true', help="create report for the updated products list")
     my_group.add_argument('-a', action='store_true', help="create reports for all companies")
+    my_group.add_argument('-d', action='store_true', help="upload all companies products to database")
 
     args = my_parser.parse_args()
     actions = vars(args)
@@ -726,5 +752,22 @@ if __name__ == '__main__':
         for company in companies:
             gln, name = company
             create_report(gln, name)
+
+    if 'd' in actions and actions['d']:
+        # get all companies
+        companies = get_companies()
+        # iterate over the companies
+        for company in companies:
+            # get the company gln and get all products of the company
+            gln, name = company
+            products = get_company_products(gln, name)
+            for product in products:
+                # get product info
+                product_info = get_product_info(product_code)
+                if product_info:
+                    #     store product info with gln in myssql database
+                    store_product_info(product_info, gln, user_d, pass_d, database, hostname)
+
+
 
     inquire_GS1_fields()
