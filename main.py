@@ -11,6 +11,8 @@ import string
 from dotenv import dotenv_values
 from itertools import combinations
 import mysql.connector
+import os
+import sys
 
 auth = ()
 
@@ -671,7 +673,15 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     )
 
     mycursor = mydb.cursor()
-    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS (product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT)")
+    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS(product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT)")
+    sql = "INSERT INTO PRODUCTS (product_code, gln, gtin, product_info) VALUES (%s, %s, %s, %s)"
+    product_code = find_key(product_info, 'product_code')[0]
+    gtin = find_key(product_info, 'gtin')[0]
+    val = (product_code, gln, gtin, json.dumps(product_info))
+    mycursor.execute(sql, val)
+    mydb.commit()
+    print(mycursor.rowcount, "record inserted.")
+
 
 if __name__ == '__main__':
     """
@@ -761,12 +771,38 @@ if __name__ == '__main__':
             # get the company gln and get all products of the company
             gln, name = company
             products = get_company_products(gln, name)
+            if not products:
+                # write to log file
+                with open('no_products_company.log', 'a') as f:
+                    f.write(gln +'\n')
             for product in products:
                 # get product info
                 product_info = get_product_info(product_code)
                 if product_info:
-                    #     store product info with gln in myssql database
+                    # store product info with gln in myssql database
                     store_product_info(product_info, gln, user_d, pass_d, database, hostname)
+                    # create images folder if not exist two folder above the script
+                    # store product images in the images folder
+                    if not os.path.exists('../../allergyfood.my-new-vision.com/images'):
+                        os.makedirs('../../allergyfood.my-new-vision.com/images')
+                    # get current foldr path
+                    current_path = os.path.dirname(os.path.abspath(__file__))
+                    # get it main media
+                    os.chdir('../../allergyfood.my-new-vision.com/images')
+                    medias = find_array(product_info, 'media_assets')
+                    if medias:
+                        # create array from the json string of the media that come without the square brackets
+                        arr = json.loads('['+medias+']')
+                        # iterate over the array and get all medias
+                        for media in arr:
+                            download_media_product(product, media['id'])
+                    os.chdir(current_path)
+
+                else:
+                    # write to log file the product that not found
+                    with open('not_found_products.log', 'a') as f:
+                        f.write(product + '\n')
+
 
 
 
