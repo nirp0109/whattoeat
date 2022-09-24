@@ -756,6 +756,29 @@ if __name__ == '__main__':
                 if results and len(results) > 0:
                     writer.writerows(results)
         send_mail.send_email_using_smtp(recipients=['nirp0109@gmail.com', 'horelad@gmail.com'], subject='updated products report', message_text='updated products report attached', attachment_filename='updated_products_report.csv')
+        for product in products:
+            # get product info
+            product_info = get_product_info(product)
+            if product_info:
+                # store product info with gln in myssql database
+                gln = find_key(product_info, COMPANY_ID_INDEX)[0]
+                store_product_info(product_info, gln, user_d, pass_d, database, hostname)
+                # create images folder if not exist two folder above the script
+                # store product images in the images folder
+                if not os.path.exists('../../allergyfood.my-new-vision.com/images'):
+                    os.makedirs('../../allergyfood.my-new-vision.com/images')
+                # get current foldr path
+                current_path = os.path.dirname(os.path.abspath(__file__))
+                # get it main media
+                os.chdir('../../allergyfood.my-new-vision.com/images')
+                medias = find_array(product_info, 'media_assets')
+                if medias:
+                    # create array from the json string of the media that come without the square brackets
+                    arr = json.loads('[' + medias + ']')
+                    # iterate over the array and get all medias
+                    for media in arr:
+                        download_media_product(product, media['id'])
+                os.chdir(current_path)
 
     if 'a' in actions and actions['a']:
         companies = get_companies()
