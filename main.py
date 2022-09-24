@@ -770,7 +770,7 @@ if __name__ == '__main__':
         for company in companies:
             # get the company gln and get all products of the company
             gln, name = company
-            products = get_company_products(gln, name)
+            products = get_company_products(gln)
             if not products:
                 # write to log file
                 with open('no_products_company.log', 'a') as f:
