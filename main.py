@@ -665,6 +665,7 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     :param db_host: str the db host
     :return: None
     """
+    print(db_user, db_password, db_name, db_host)
     mydb = mysql.connector.connect(
         host=db_host,
         user=db_user,
