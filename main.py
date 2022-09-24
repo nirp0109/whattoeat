@@ -701,7 +701,7 @@ if __name__ == '__main__':
     5.upload all companies products to the database
     python3 main.py -d
     """
-    (user, password, hostname, user_d, pass_d, database) = dotenv_values('.env').values()
+    (user, password, user_d, pass_d, database, hostname) = dotenv_values('.env').values()
     auth = (user, password)
     my_parser = argparse.ArgumentParser(description="for test a given product(-p) or a company(-c) or get updated products list(-u) or create report foe updated products list(-s)")
     my_group = my_parser.add_mutually_exclusive_group(required=True)
