@@ -665,7 +665,6 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     :param db_host: str the db host
     :return: None
     """
-    print(db_user, db_password, db_name, db_host)
     mydb = mysql.connector.connect(
         host=db_host,
         user=db_user,
@@ -677,7 +676,7 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS(product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT)")
     sql = "INSERT INTO PRODUCTS (product_code, gln, gtin, product_info) VALUES (%s, %s, %s, %s)"
     product_code = find_key(product_info, 'product_code')[0]
-    gtin = find_key(product_info, 'gtin')[0]
+    gtin = find_key(product_info, PRODUCT_ID_INDEX)[0]
     val = (product_code, gln, gtin, json.dumps(product_info))
     mycursor.execute(sql, val)
     mydb.commit()
