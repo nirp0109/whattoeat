@@ -777,7 +777,7 @@ if __name__ == '__main__':
                     f.write(gln +'\n')
             for product in products:
                 # get product info
-                product_info = get_product_info(product_code)
+                product_info = get_product_info(product)
                 if product_info:
                     # store product info with gln in myssql database
                     store_product_info(product_info, gln, user_d, pass_d, database, hostname)
