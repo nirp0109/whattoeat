@@ -826,7 +826,7 @@ if __name__ == '__main__':
                     f.write(gln +'\n')
             # find the products that not exist in the database
             # get the products that not exist in the database
-            products_exist_in_db = get_products_exist_in_db(products, gln, user_d, pass_d, database, hostname)
+            products_exist_in_db = get_products_exist_in_db(gln, user_d, pass_d, database, hostname)
             products_not_exist = list(set(products) - set(products_exist_in_db))
             for product in products_not_exist:
                 # get product info
