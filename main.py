@@ -683,6 +683,32 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     print(mycursor.rowcount, "record inserted.")
 
 
+def get_products_exist_in_db(gln, db_user, db_password, db_name, db_host):
+    """
+    get a list of products that exist in the db for the given gln
+    :param gln: str the company gln
+    :param db_user: str the db user
+    :param db_password: str the db password
+    :param db_name: str the db name
+    :param db_host: str the db host
+    :return: list<str> products codes
+    """
+    mydb = mysql.connector.connect(
+        host=db_host,
+        user=db_user,
+        password=db_password,
+        database=db_name
+    )
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT product_code FROM PRODUCTS WHERE gln = '{}'".format(gln))
+    myresult = mycursor.fetchall()
+    products = []
+    for x in myresult:
+        products.append(x[0])
+    return products
+
+
 if __name__ == '__main__':
     """
     main entry point
@@ -798,7 +824,11 @@ if __name__ == '__main__':
                 # write to log file
                 with open('no_products_company.log', 'a') as f:
                     f.write(gln +'\n')
-            for product in products:
+            # find the products that not exist in the database
+            # get the products that not exist in the database
+            products_exist_in_db = get_products_exist_in_db(products, gln, user_d, pass_d, database, hostname)
+            products_not_exist = list(set(products) - set(products_exist_in_db))
+            for product in products_not_exist:
                 # get product info
                 product_info = get_product_info(product)
                 if product_info:
