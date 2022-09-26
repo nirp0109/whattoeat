@@ -844,11 +844,14 @@ if __name__ == '__main__':
                     os.chdir('../../allergyfood.my-new-vision.com/images')
                     medias = find_array(product_info, 'media_assets')
                     if medias:
-                        # create array from the json string of the media that come without the square brackets
-                        arr = json.loads('['+medias+']')
-                        # iterate over the array and get all medias
-                        for media in arr:
-                            download_media_product(product, media['id'])
+                        try:
+                            # create array from the json string of the media that come without the square brackets
+                            arr = json.loads('['+medias+']')
+                            # iterate over the array and get all medias
+                            for media in arr:
+                                download_media_product(product, media['id'])
+                        except:
+                            print('error in media, medias: ' + medias)
                     os.chdir(current_path)
 
                 else:
