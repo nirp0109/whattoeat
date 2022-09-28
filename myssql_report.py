@@ -78,10 +78,7 @@ def create_csv_report():
         for row in data:
             json_data = json.loads(row[3])
 
-            writer.writerow([row[2], row[3]['GPC_Category_Code'], row[3]['Trade_Item_Description']])
-
-
-
+            writer.writerow([row[2], find_key(json_data,'GPC_Category_Code')[0], find_key(json_data, 'Trade_Item_Description')[0]])
 
 if __name__ == '__main__':
     create_csv_report()
