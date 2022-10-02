@@ -80,5 +80,47 @@ def create_csv_report():
 
             writer.writerow([row[2], find_key(json_data,'GPC_Category_Code')[0], find_key(json_data, 'Trade_Item_Description')[0]])
 
+
+def create_GLN_table():
+    """
+    create GLN table at mysql with name GLN from GLN.csv
+    """
+    # reading .env
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+
+    # creating a query fetching the json data from PRODUCTS table
+    query = ("CREATE TABLE GLN (GLN VARCHAR(13), NAME VARCHAR(255), PRIMARY KEY (GLN))")
+
+    # executing the query
+    cursor.execute(query)
+    cnx.commit()
+
+    # creating a csv file
+    with open('GLN.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        next(reader)
+        for row in reader:
+            query = ("INSERT INTO GLN (GLN, NAME) VALUES (%s, %s)")
+            data = (row[0], row[1])
+            cursor.execute(query, data)
+            cnx.commit()
+
 if __name__ == '__main__':
-    create_csv_report()
+    # create_csv_report()
+    create_GLN_table()
