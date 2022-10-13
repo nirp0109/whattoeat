@@ -159,7 +159,7 @@ def create_category_table():
         for line in file.lines:
             # split the line by comman that is not surrounded by double quotes
             columns = re.split(r',(?=(?:[^"]*"[^"]*")*[^"]*$)', line)
-            category = columns[0]
+            category = columns[0].replace('"', '').strip()
             gpc_category_code = columns[1].replace('"', '').strip()+columns[2].replace('"', '').strip()
 
             query = ("INSERT INTO CATEGORY (CATEGORY, GPC_CATEGORY_CODE) VALUES (%s, %s)")
