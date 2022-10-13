@@ -167,8 +167,57 @@ def create_category_table():
             cursor.execute(query, data)
             cnx.commit()
 
+def map_category_to_gpc_category():
+       """
+       load table CATEGORY read id column and list seperated by comma from GPC_CATEGORY_CODE
+       and insert them in table GPC_CATEGORY_CODE to field CATEGORY and GPC_CODE
+       """
+       # reading .env
+       (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+        # connecting to the database
+       try:
+           cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+       except mysql.connector.Error as err:
+           if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+               print("Something is wrong with your user name or password")
+           elif err.errno == errorcode.ER_BAD_DB_ERROR:
+               print("Database does not exist")
+           else:
+               print(err)
+           sys.exit(1)
+
+        # creating a cursor
+       cursor = cnx.cursor()
+
+        # creating a table if not exist
+       query = ("CREATE TABLE IF NOT EXISTS GPC_CATEGORY_CODE (CATEGORY VARCHAR(255), GPC_CODE VARCHAR(255))")
+
+        # executing the query
+       cursor.execute(query)
+       cnx.commit()
+
+        #read each row from CATEGORY table and insert them in GPC_CATEGORY_CODE
+       query = ("SELECT id, GPC_CATEGORY_CODE FROM CATEGORY")
+       cursor.execute(query)
+       data = cursor.fetchall()
+       for row in data:
+           category = row[0]
+           gpc_category_code = row[1].split(',')
+           for gpc in gpc_category_code:
+               query = ("INSERT INTO GPC_CATEGORY_CODE (CATEGORY, GPC_CODE) VALUES (%s, %s)")
+               data = (category, gpc.strip())
+               cursor.execute(query, data)
+               cnx.commit()
+
+
+
 
 if __name__ == '__main__':
     # create_csv_report()
     # create_GLN_table()
-    create_category_table()
+    # create_category_table()
+    map_category_to_gpc_category()
+
+
