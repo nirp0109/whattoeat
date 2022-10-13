@@ -3,21 +3,14 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="\7290002700005_report.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\7290009800005_report.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\Alias.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Categories.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -38,6 +31,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\Products_categories.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\allergens.csv">
           <value>
             <Attribute>
@@ -52,7 +52,14 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\updated_products_report.csv">
+        <entry key="\diff.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\food.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

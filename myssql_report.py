@@ -204,7 +204,7 @@ def map_category_to_gpc_category():
        data = cursor.fetchall()
        for row in data:
            category = row[0]
-           gpc_category_code = row[1].split(',')
+           gpc_category_code = row[1].split('\d+')
            for gpc in gpc_category_code:
                query = ("INSERT INTO GPC_CATEGORY_CODE (CATEGORY, GPC_CODE) VALUES (%s, %s)")
                data = (category, gpc.strip())
