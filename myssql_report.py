@@ -121,6 +121,54 @@ def create_GLN_table():
             cursor.execute(query, data)
             cnx.commit()
 
+
+def create_category_table():
+    """
+    create category table at mysql with name CATEGORY from Products_categories.csv
+    On the csv each category is on a new line appear at the first column on the second column there are list GPC category codes remove the '"' char and trim spaces
+    """
+    # reading .env
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+
+    # creating a table if not exist
+    query = ("CREATE TABLE IF NOT EXISTS CATEGORY (CATEGORY VARCHAR(255), GPC_CATEGORY_CODE VARCHAR(255), PRIMARY KEY (CATEGORY))")
+
+    # executing the query
+    cursor.execute(query)
+    cnx.commit()
+
+    # creating a csv file
+    with open('Products_categories.csv', 'r', encoding='utf-8') as file:
+        file.lines = file.readlines()
+        for line in file.lines:
+            # split the line by comman that is not surrounded by double quotes
+            columns = re.split(r',(?=(?:[^"]*"[^"]*")*[^"]*$)', line)
+            category = columns[0]
+            gpc_category_code = columns[1].replace('"', '').strip()+columns[2].replace('"', '').strip()
+
+            query = ("INSERT INTO CATEGORY (CATEGORY, GPC_CATEGORY_CODE) VALUES (%s, %s)")
+            data = (category, gpc_category_code)
+            cursor.execute(query, data)
+            cnx.commit()
+
+
 if __name__ == '__main__':
     # create_csv_report()
-    create_GLN_table()
+    # create_GLN_table()
+    create_category_table()
