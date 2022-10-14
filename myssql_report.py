@@ -212,12 +212,60 @@ def map_category_to_gpc_category():
                cnx.commit()
 
 
+def add_columns_to_products_table():
+    """
+    read json from table PRODUCTS at column product_info
+    extract from it the following GS1 fields: Short_Description, BrandName, Sub_Brand_Name, Ingredient_Sequence_and_Name, Allergen_Type_Code_and_Containment, Allergen_Type_Code_and_Containment_May_Contain
+    and add them in them same order to the table PRODUCTS as Short_Description, Brand_Name, Sub_Brand_Name, Ingredients, Allergens_Contain, Allergens_May_Contain
+    """
+    # reading .env
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+
+    # read each row from PRODUCTS table and extract the GS1 fields
+    query = ("SELECT id, product_info FROM PRODUCTS")
+    cursor.execute(query)
+    data = cursor.fetchall()
+    for row in data:
+        product_id = row[0]
+        product_info = json.loads(row[1])
+        short_description = product_info['Short_Description']
+        brand_name = product_info['BrandName']
+        sub_brand_name = product_info['Sub_Brand_Name']
+        ingredient_sequence_and_name = product_info['Ingredient_Sequence_and_Name']
+        allergen_type_code_and_containment = product_info['Allergen_Type_Code_and_Containment']
+        allergen_type_code_and_containment_may_contain = product_info['Allergen_Type_Code_and_Containment_May_Contain']
+
+        print(product_id, short_description, brand_name, sub_brand_name, ingredient_sequence_and_name, allergen_type_code_and_containment, allergen_type_code_and_containment_may_contain)
+
+        # insert the GS1 fields in the same order to the table PRODUCTS
+        # query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
+        # data = (short_description, brand_name, sub_brand_name, ingredient_sequence_and_name, allergen_type_code_and_containment, allergen_type_code_and_containment_may_contain, product_id)
+        # cursor.execute(query, data)
+        # cnx.commit()
+
 
 
 if __name__ == '__main__':
     # create_csv_report()
     # create_GLN_table()
     # create_category_table()
-    map_category_to_gpc_category()
+    # map_category_to_gpc_category()
+    add_columns_to_products_table()
 
 
