@@ -244,8 +244,15 @@ def add_columns_to_products_table():
     for row in data:
         product_id = row[0]
         json_data = json.loads(row[1])
-        short_description = find_key(json_data, 'Short_Description')
-        brand_name = find_key(json_data, 'BrandName')
+        report_fields = [(short_description, 'Short_Description'), (brand_name, 'BrandName'), (sub_brand_name,'Sub_Brand_Name'), (ingredients, 'Ingredient_Sequence_and_Name'), (allergens_contain,'Allergen_Type_Code_and_Containment'), (allergens_may_contain, 'Allergen_Type_Code_and_Containment_May_Contain')]
+        for variable, field in report_fields:
+            try:
+                variable = find_key(json_data, field)
+            except KeyError:
+                variable = None
+
+        short_description = find_key(json_data, 'Short_Description')[0]
+        brand_name = find_key(json_data, 'BrandName')[0]
         sub_brand_name = find_key(json_data, 'Sub_Brand_Name')
         ingredients = find_key(json_data, 'Ingredient_Sequence_and_Name')
         allergens_contain = find_key(json_data, 'Allergen_Type_Code_and_Containment')
