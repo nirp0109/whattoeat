@@ -245,28 +245,28 @@ def add_columns_to_products_table():
         product_id = row[0]
         json_data = json.loads(row[1])
         short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain = '', '', '', '', '', ''
-        report_fields = [(short_description, 'Short_Description'), (brand_name, 'BrandName'), (sub_brand_name,'Sub_Brand_Name'), (ingredients, 'Ingredient_Sequence_and_Name'), (allergens_contain,'Allergen_Type_Code_and_Containment'), (allergens_may_contain, 'Allergen_Type_Code_and_Containment_May_Contain')]
-        for variable, field in report_fields:
+        fields = ['Short_Description', 'BrandName' ,'Sub_Brand_Name', 'Ingredient_Sequence_and_Name','Allergen_Type_Code_and_Containment', 'Allergen_Type_Code_and_Containment_May_Contain']
+        field_values = []
+        for field in fields:
             try:
                 val = find_key(json_data, field)
                 if type(val) == list:
                     if len(val) == 0:
-                        variable = ""
+                        field_values.append('')
                     else:
-                        variable = val[0]
+                        field_values.append(val[0])
                 else:
-                    variable = val
-
+                    field_values.append(val)
             except:
                 val = find_array(json_data, field)[0]
                 if type(val) == list:
                     if len(val) == 0:
-                        variable = ""
+                        field_values.append('')
                     else:
-                        variable = val[0]
+                        field_values.append(val[0])
                 else:
-                    variable = val
-        print(product_id, short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain)
+                    field_values.append(val)
+        print(field_values)
 
         #
         # short_description = find_key(json_data, 'Short_Description')[0]
@@ -279,9 +279,9 @@ def add_columns_to_products_table():
 
 
         # insert the GS1 fields in the same order to the table PRODUCTS
+        # field_values.append(product_id)
         # query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
-        # data = (short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain, product_id)
-        # cursor.execute(query, data)
+        # cursor.execute(query, field_values)
         # cnx.commit()
 
 
