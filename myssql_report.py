@@ -266,7 +266,7 @@ def add_columns_to_products_table():
                         field_values.append(val[0])
                 else:
                     field_values.append(val)
-        print(field_values)
+
 
         pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment')
         compile_pattern = re.compile(pattern_str)
@@ -274,7 +274,7 @@ def add_columns_to_products_table():
         pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment_May_Contain')
         compile_pattern = re.compile(pattern_str)
         allergen_may_contain = compile_pattern.findall(json_data)
-        print(allergen_contain)
+
         try:
             allergen_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_contain))
         except:
@@ -293,6 +293,7 @@ def add_columns_to_products_table():
         pretty_alleregen_may_contain = list(allergen_may_contain_set)
         pretty_alleregen_may_contain = sorted(pretty_alleregen_may_contain)
         field_values.append(','.join(pretty_alleregen_may_contain))
+        print(field_values)
 
         #
         # short_description = find_key(json_data, 'Short_Description')[0]
