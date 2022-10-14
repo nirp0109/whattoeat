@@ -243,19 +243,19 @@ def add_columns_to_products_table():
     data = cursor.fetchall()
     for row in data:
         product_id = row[0]
-        product_info = json.loads(row[1])
-        short_description = product_info['Short_Description']
-        brand_name = product_info['BrandName']
-        sub_brand_name = product_info['Sub_Brand_Name']
-        ingredient_sequence_and_name = product_info['Ingredient_Sequence_and_Name']
-        allergen_type_code_and_containment = product_info['Allergen_Type_Code_and_Containment']
-        allergen_type_code_and_containment_may_contain = product_info['Allergen_Type_Code_and_Containment_May_Contain']
+        product_info = row[1]
+        short_description = find_key(product_info, 'Short_Description')
+        brand_name = find_key(product_info, 'BrandName')
+        sub_brand_name = find_key(product_info, 'Sub_Brand_Name')
+        ingredients = find_key(product_info, 'Ingredient_Sequence_and_Name')
+        allergens_contain = find_key(product_info, 'Allergen_Type_Code_and_Containment')
+        allergens_may_contain = find_key(product_info, 'Allergen_Type_Code_and_Containment_May_Contain')
 
-        print(product_id, short_description, brand_name, sub_brand_name, ingredient_sequence_and_name, allergen_type_code_and_containment, allergen_type_code_and_containment_may_contain)
+        print(product_id, short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain)
 
         # insert the GS1 fields in the same order to the table PRODUCTS
         # query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
-        # data = (short_description, brand_name, sub_brand_name, ingredient_sequence_and_name, allergen_type_code_and_containment, allergen_type_code_and_containment_may_contain, product_id)
+        # data = (short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain, product_id)
         # cursor.execute(query, data)
         # cnx.commit()
 
