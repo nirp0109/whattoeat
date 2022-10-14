@@ -248,12 +248,15 @@ def add_columns_to_products_table():
         report_fields = [(short_description, 'Short_Description'), (brand_name, 'BrandName'), (sub_brand_name,'Sub_Brand_Name'), (ingredients, 'Ingredient_Sequence_and_Name'), (allergens_contain,'Allergen_Type_Code_and_Containment'), (allergens_may_contain, 'Allergen_Type_Code_and_Containment_May_Contain')]
         for variable, field in report_fields:
             try:
-                variable = find_key(json_data, field)
-                if type(variable) == list:
-                    if len(variable) == 0:
+                val = find_key(json_data, field)
+                if type(val) == list:
+                    if len(val) == 0:
                         variable = ""
                     else:
-                        variable = variable[0]
+                        variable = val[0]
+                else:
+                    variable = val
+
             except:
                 pass
 
