@@ -673,11 +673,19 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     )
 
     mycursor = mydb.cursor()
-    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS(product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT)")
-    sql = "INSERT INTO PRODUCTS (product_code, gln, gtin, product_info) VALUES (%s, %s, %s, %s)"
+    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS(id int NOT NULL AUTO_INCREMENT, product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT, Short_Description varchar(255), Brand_Name varchar(255), Sub_Brand_Name varchar(255), Ingredients varchar(255), Allergens_Contain varchar(255), Allergens_May_Contain varchar(255), PRIMARY KEY (id))")
+    sql = "INSERT INTO PRODUCTS (product_code, gln, gtin, product_info, Short_Description, Brand_Name, Sub_Brand_Name, Ingredients, Allergens_Contain, Allergens_May_Contain) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
+    short_description = find_key(product_info,'Short_Description')
+    brand_name = find_key(product_info,'BrandName')
+    sub_brand_name = find_key(product_info,'Sub_Brand_Name')
+    ingredients = find_key(product_info,'Ingredient_Sequence_and_Name')
+    allergens_contain = find_key(product_info, 'Allergen_Type_Code_and_Containment')
+    allergens_may_contain = find_key(product_info, 'Allergen_Type_Code_and_Containment_May_Contain')
+
     product_code = find_key(product_info, 'product_code')[0]
     gtin = find_key(product_info, PRODUCT_ID_INDEX)[0]
-    val = (product_code, gln, gtin, json.dumps(product_info))
+    val = (product_code, gln, gtin, json.dumps(product_info), short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain)
     mycursor.execute(sql, val)
     mydb.commit()
     print(mycursor.rowcount, "record inserted.")
