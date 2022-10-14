@@ -249,6 +249,7 @@ def add_columns_to_products_table():
         for variable, field in report_fields:
             try:
                 val = find_key(json_data, field)
+                print(val)
                 if type(val) == list:
                     if len(val) == 0:
                         variable = ""
