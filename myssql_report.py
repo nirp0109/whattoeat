@@ -249,7 +249,6 @@ def add_columns_to_products_table():
         for variable, field in report_fields:
             try:
                 val = find_key(json_data, field)
-                print(val)
                 if type(val) == list:
                     if len(val) == 0:
                         variable = ""
@@ -267,7 +266,8 @@ def add_columns_to_products_table():
                         variable = val[0]
                 else:
                     variable = val
-            print(field, "variable:"+variable)
+            print(product_id, short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain)
+
         #
         # short_description = find_key(json_data, 'Short_Description')[0]
         # brand_name = find_key(json_data, 'BrandName')[0]
@@ -276,7 +276,7 @@ def add_columns_to_products_table():
         # allergens_contain = find_key(json_data, 'Allergen_Type_Code_and_Containment')
         # allergens_may_contain = find_key(json_data, 'Allergen_Type_Code_and_Containment_May_Contain')
 
-        print(product_id, short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain)
+
 
         # insert the GS1 fields in the same order to the table PRODUCTS
         # query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
