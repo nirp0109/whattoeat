@@ -259,7 +259,14 @@ def add_columns_to_products_table():
                     variable = val
 
             except:
-                pass
+                val = find_array(json_data, field)[0]
+                if type(val) == list:
+                    if len(val) == 0:
+                        variable = ""
+                    else:
+                        variable = val[0]
+                else:
+                    variable = val
 
         #
         # short_description = find_key(json_data, 'Short_Description')[0]
