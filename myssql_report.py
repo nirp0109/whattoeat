@@ -293,23 +293,12 @@ def add_columns_to_products_table():
         pretty_alleregen_may_contain = list(allergen_may_contain_set)
         pretty_alleregen_may_contain = sorted(pretty_alleregen_may_contain)
         field_values.append(','.join(pretty_alleregen_may_contain))
-        print(field_values)
-
-        #
-        # short_description = find_key(json_data, 'Short_Description')[0]
-        # brand_name = find_key(json_data, 'BrandName')[0]
-        # sub_brand_name = find_key(json_data, 'Sub_Brand_Name')
-        # ingredients = find_key(json_data, 'Ingredient_Sequence_and_Name')
-        # allergens_contain = find_key(json_data, 'Allergen_Type_Code_and_Containment')
-        # allergens_may_contain = find_key(json_data, 'Allergen_Type_Code_and_Containment_May_Contain')
-
-
 
         # insert the GS1 fields in the same order to the table PRODUCTS
-        # field_values.append(product_id)
-        # query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
-        # cursor.execute(query, field_values)
-        # cnx.commit()
+        field_values.append(product_id)
+        query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
+        cursor.execute(query, field_values)
+        cnx.commit()
 
 
 
