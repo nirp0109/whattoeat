@@ -244,6 +244,7 @@ def add_columns_to_products_table():
     for row in data:
         product_id = row[0]
         json_data = json.loads(row[1])
+        short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain = '', '', '', '', '', ''
         report_fields = [(short_description, 'Short_Description'), (brand_name, 'BrandName'), (sub_brand_name,'Sub_Brand_Name'), (ingredients, 'Ingredient_Sequence_and_Name'), (allergens_contain,'Allergen_Type_Code_and_Containment'), (allergens_may_contain, 'Allergen_Type_Code_and_Containment_May_Contain')]
         for variable, field in report_fields:
             try:
