@@ -267,7 +267,7 @@ def add_columns_to_products_table():
                         variable = val[0]
                 else:
                     variable = val
-
+            print(field, "variable:"+variable)
         #
         # short_description = find_key(json_data, 'Short_Description')[0]
         # brand_name = find_key(json_data, 'BrandName')[0]
