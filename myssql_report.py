@@ -243,13 +243,13 @@ def add_columns_to_products_table():
     data = cursor.fetchall()
     for row in data:
         product_id = row[0]
-        product_info = row[1]
-        short_description = find_key(product_info, 'Short_Description')
-        brand_name = find_key(product_info, 'BrandName')
-        sub_brand_name = find_key(product_info, 'Sub_Brand_Name')
-        ingredients = find_key(product_info, 'Ingredient_Sequence_and_Name')
-        allergens_contain = find_key(product_info, 'Allergen_Type_Code_and_Containment')
-        allergens_may_contain = find_key(product_info, 'Allergen_Type_Code_and_Containment_May_Contain')
+        json_data = json.loads(row[1])
+        short_description = find_key(json_data, 'Short_Description')
+        brand_name = find_key(json_data, 'BrandName')
+        sub_brand_name = find_key(json_data, 'Sub_Brand_Name')
+        ingredients = find_key(json_data, 'Ingredient_Sequence_and_Name')
+        allergens_contain = find_key(json_data, 'Allergen_Type_Code_and_Containment')
+        allergens_may_contain = find_key(json_data, 'Allergen_Type_Code_and_Containment_May_Contain')
 
         print(product_id, short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain)
 
