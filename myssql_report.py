@@ -245,7 +245,7 @@ def add_columns_to_products_table():
         product_id = row[0]
         json_data = json.loads(row[1])
         short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain = '', '', '', '', '', ''
-        fields = ['Short_Description', 'BrandName' ,'Sub_Brand_Name', 'Ingredient_Sequence_and_Name','Allergen_Type_Code_and_Containment', 'Allergen_Type_Code_and_Containment_May_Contain']
+        fields = ['Short_Description', 'BrandName' ,'Sub_Brand_Name', 'Ingredient_Sequence_and_Name']
         field_values = []
         for field in fields:
             try:
@@ -267,6 +267,32 @@ def add_columns_to_products_table():
                 else:
                     field_values.append(val)
         print(field_values)
+
+        pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment')
+        compile_pattern = re.compile(pattern_str)
+        allergen_contain = compile_pattern.findall(json_data)
+        pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment_May_Contain')
+        compile_pattern = re.compile(pattern_str)
+        allergen_may_contain = compile_pattern.findall(json_data)
+        print(allergen_contain)
+        try:
+            allergen_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_contain))
+        except:
+            allergen_contain_set = set(
+                map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_contain[0])))
+        try:
+            allergen_may_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_may_contain))
+        except:
+            allergen_may_contain_set = set(
+                map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_may_contain[0])))
+
+        # get allergen contain and may contain from product info(labels)
+        pretty_alleregen_contain = list(allergen_contain_set)
+        pretty_alleregen_contain = sorted(pretty_alleregen_contain)
+        field_values.append(','.join(pretty_alleregen_contain))
+        pretty_alleregen_may_contain = list(allergen_may_contain_set)
+        pretty_alleregen_may_contain = sorted(pretty_alleregen_may_contain)
+        field_values.append(','.join(pretty_alleregen_may_contain))
 
         #
         # short_description = find_key(json_data, 'Short_Description')[0]
