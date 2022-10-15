@@ -673,7 +673,7 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     )
 
     mycursor = mydb.cursor()
-    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS(id int NOT NULL AUTO_INCREMENT, product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT, Short_Description varchar(255), Brand_Name varchar(255), Sub_Brand_Name varchar(255), Ingredients varchar(255), Allergens_Contain varchar(255), Allergens_May_Contain varchar(255), PRIMARY KEY (id))")
+    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS(id int NOT NULL AUTO_INCREMENT, product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT, Short_Description varchar(255), Brand_Name varchar(255), Sub_Brand_Name varchar(255), Ingredients varchar(255), Allergens_Contain varchar(255), Allergens_May_Contain varchar(255), Active tinyint(1), PRIMARY KEY (id))")
     sql = "INSERT INTO PRODUCTS (product_code, gln, gtin, product_info, Short_Description, Brand_Name, Sub_Brand_Name, Ingredients, Allergens_Contain, Allergens_May_Contain) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
     fields = ['Short_Description', 'BrandName', 'Sub_Brand_Name', 'Ingredients']
