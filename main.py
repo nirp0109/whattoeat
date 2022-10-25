@@ -673,8 +673,8 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     )
 
     mycursor = mydb.cursor()
-    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS(id int NOT NULL AUTO_INCREMENT, product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT, Short_Description varchar(255), Brand_Name varchar(255), Sub_Brand_Name varchar(255), Ingredients varchar(255), Allergens_Contain varchar(255), Allergens_May_Contain varchar(255), Active tinyint(1), PRIMARY KEY (id))")
-    sql = "INSERT INTO PRODUCTS (product_code, gln, gtin, product_info, Short_Description, Brand_Name, Sub_Brand_Name, Ingredients, Allergens_Contain, Allergens_May_Contain) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    mycursor.execute("CREATE TABLE  IF NOT EXISTS PRODUCTS(id int NOT NULL AUTO_INCREMENT, product_code VARCHAR(255), gln VARCHAR(255), gtin VARCHAR(255), product_info MEDIUMTEXT, Short_Description varchar(255), Brand_Name varchar(255), Sub_Brand_Name varchar(255), Ingredients varchar(255), Allergens_Contain varchar(255), Allergens_May_Contain varchar(255), Active tinyint(1),Product_Status int(4) PRIMARY KEY (id))")
+    sql = "INSERT INTO PRODUCTS (product_code, gln, gtin, product_info, Short_Description, Brand_Name, Sub_Brand_Name, Ingredients, Allergens_Contain, Allergens_May_Contain, Product_Status, Active) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
     fields = ['Short_Description', 'BrandName', 'Sub_Brand_Name', 'Ingredients']
     field_values = []
@@ -723,7 +723,15 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     pretty_alleregen_may_contain = list(allergen_may_contain_set)
     pretty_alleregen_may_contain = sorted(pretty_alleregen_may_contain)
     field_values.append(','.join(pretty_alleregen_may_contain))
-
+    status = find_key(product_info, 'Product_Status')
+    status_json = json.loads(status)
+    status_int = int(status_json['code'])
+    field_values.append(status_int)
+    # active is 1 if status is 6303
+    if status_int == 6303:
+        field_values.append(1)
+    else:
+        field_values.append(0)
 
     product_code = find_key(product_info, 'product_code')[0]
     gtin = find_key(product_info, PRODUCT_ID_INDEX)[0]
