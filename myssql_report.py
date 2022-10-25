@@ -310,7 +310,7 @@ def add_columns_to_products_table():
             field_values.append(0)
             field_values.append(0)
 
-
+        field_values.append(product_id)
         # query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
         query = ("UPDATE PRODUCTS SET Product_Status=%s, Active=%s WHERE id=%s")
         cursor.execute(query, field_values)
