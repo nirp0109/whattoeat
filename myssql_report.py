@@ -245,58 +245,74 @@ def add_columns_to_products_table():
         product_id = row[0]
         json_data = json.loads(row[1])
         short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain = '', '', '', '', '', ''
-        fields = ['Short_Description', 'BrandName' ,'Sub_Brand_Name', 'Ingredient_Sequence_and_Name']
+        # fields = ['Short_Description', 'BrandName' ,'Sub_Brand_Name', 'Ingredient_Sequence_and_Name']
+
         field_values = []
-        for field in fields:
-            try:
-                val = find_key(json_data, field)
-                if type(val) == list:
-                    if len(val) == 0:
-                        field_values.append('')
-                    else:
-                        field_values.append(val[0])
-                else:
-                    field_values.append(val)
-            except:
-                val = find_array(json_data, field)[0]
-                if type(val) == list:
-                    if len(val) == 0:
-                        field_values.append('')
-                    else:
-                        field_values.append(val[0])
-                else:
-                    field_values.append(val)
-
-
-        pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment')
-        compile_pattern = re.compile(pattern_str)
-        allergen_contain = compile_pattern.findall(json_data)
-        pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment_May_Contain')
-        compile_pattern = re.compile(pattern_str)
-        allergen_may_contain = compile_pattern.findall(json_data)
-
-        try:
-            allergen_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_contain))
-        except:
-            allergen_contain_set = set(
-                map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_contain[0])))
-        try:
-            allergen_may_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_may_contain))
-        except:
-            allergen_may_contain_set = set(
-                map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_may_contain[0])))
-
-        # get allergen contain and may contain from product info(labels)
-        pretty_alleregen_contain = list(allergen_contain_set)
-        pretty_alleregen_contain = sorted(pretty_alleregen_contain)
-        field_values.append(','.join(pretty_alleregen_contain))
-        pretty_alleregen_may_contain = list(allergen_may_contain_set)
-        pretty_alleregen_may_contain = sorted(pretty_alleregen_may_contain)
-        field_values.append(','.join(pretty_alleregen_may_contain))
+        # for field in fields:
+        #     try:
+        #         val = find_key(json_data, field)
+        #         if type(val) == list:
+        #             if len(val) == 0:
+        #                 field_values.append('')
+        #             else:
+        #                 field_values.append(val[0])
+        #         else:
+        #             field_values.append(val)
+        #     except:
+        #         val = find_array(json_data, field)[0]
+        #         if type(val) == list:
+        #             if len(val) == 0:
+        #                 field_values.append('')
+        #             else:
+        #                 field_values.append(val[0])
+        #         else:
+        #             field_values.append(val)
+        #
+        #
+        # pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment')
+        # compile_pattern = re.compile(pattern_str)
+        # allergen_contain = compile_pattern.findall(json_data)
+        # pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment_May_Contain')
+        # compile_pattern = re.compile(pattern_str)
+        # allergen_may_contain = compile_pattern.findall(json_data)
+        #
+        # try:
+        #     allergen_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_contain))
+        # except:
+        #     allergen_contain_set = set(
+        #         map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_contain[0])))
+        # try:
+        #     allergen_may_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_may_contain))
+        # except:
+        #     allergen_may_contain_set = set(
+        #         map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_may_contain[0])))
+        #
+        # # get allergen contain and may contain from product info(labels)
+        # pretty_alleregen_contain = list(allergen_contain_set)
+        # pretty_alleregen_contain = sorted(pretty_alleregen_contain)
+        # field_values.append(','.join(pretty_alleregen_contain))
+        # pretty_alleregen_may_contain = list(allergen_may_contain_set)
+        # pretty_alleregen_may_contain = sorted(pretty_alleregen_may_contain)
+        # field_values.append(','.join(pretty_alleregen_may_contain))
 
         # insert the GS1 fields in the same order to the table PRODUCTS
-        field_values.append(product_id)
-        query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
+        val = find_array(json_data, 'Product_Status')
+        if val and len(val) > 0:
+            json_value = json.loads(val)
+            field_values.append(json_value['code'])
+            status_int = int(json_value['code'])
+            # active is 1 if status is 6303
+            if status_int == 6303:
+                field_values.append(1)
+            else:
+                field_values.append(0)
+        else:
+            field_values.append(0)
+            field_values.append(0)
+
+
+        # query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
+        query = ("UPDATE PRODUCTS SET Product_Status=%s, Active=%s WHERE id=%s")
         cursor.execute(query, field_values)
         cnx.commit()
 
