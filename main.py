@@ -723,9 +723,12 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     pretty_alleregen_may_contain = list(allergen_may_contain_set)
     pretty_alleregen_may_contain = sorted(pretty_alleregen_may_contain)
     field_values.append(','.join(pretty_alleregen_may_contain))
-    status = find_key(product_info, 'Product_Status')
-    status_json = json.loads(status)
-    status_int = int(status_json['code'])
+    status = find_array(product_info, 'Product_Status')
+    try:
+        status_json = json.loads(status)
+        status_int = int(status_json['code'])
+    except:
+        status_int = 0
     field_values.append(status_int)
     # active is 1 if status is 6303
     if status_int == 6303:
