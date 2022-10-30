@@ -743,6 +743,19 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     mydb.commit()
     print(mycursor.rowcount, "record inserted.")
 
+    #insert diet information into PRODUCT_DIETS table where product_id is the id of the product in PRODUCTS table and diet_id is array is extract from product_info Diet_Information array
+    product_id = mycursor.lastrowid
+    diet_information_list =re.findall(r"\{.*?\}",find_array(product_info, 'Diet_Information'))
+    print("diet_information_list>>>",diet_information_list)
+    diet_information_codes =  list(map(lambda item : int_code_value_from_json(item), diet_information_list))
+    sql = "INSERT INTO PRODUCT_DIETS (product_id, diet_id) VALUES (%s, %s)"
+    for diet_id in diet_information_codes:
+        val = (product_id, diet_id)
+        mycursor.execute(sql, val)
+        mydb.commit()
+        print(mycursor.rowcount, "record inserted.")
+
+
 
 def get_products_exist_in_db(gln, db_user, db_password, db_name, db_host):
     """
