@@ -749,11 +749,13 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     print("diet_information_list>>>",diet_information_list)
     diet_information_codes =  list(map(lambda item : int_code_value_from_json(item), diet_information_list))
     sql = "INSERT INTO PRODUCT_DIETS (product_id, diet_id) VALUES (%s, %s)"
-    for diet_id in diet_information_codes:
-        val = (product_id, diet_id)
-        mycursor.execute(sql, val)
-        mydb.commit()
-        print(mycursor.rowcount, "record inserted.")
+    # if diet_information_codes is not empty insert diet information into PRODUCT_DIETS table
+    if len(diet_information_codes) > 0:
+        for diet_id in diet_information_codes:
+            val = (product_id, diet_id)
+            mycursor.execute(sql, val)
+            mydb.commit()
+            print(mycursor.rowcount, "record inserted.")
 
 
 
