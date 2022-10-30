@@ -317,12 +317,60 @@ def add_columns_to_products_table():
         cnx.commit()
 
 
+def int_code_value_from_json(item):
+    try:
+        return int(json.loads(item)['code'])
+    except:
+        return -1
+def populateProductDietsTabel():
+    """
+    read json from table PRODUCTS at column product_info
+    extract from it the following GS1 fields: Diet_Information
+    and add them in them same order to the table PRODUCT_DIETS where product_id is the id column from table PRODUCTS and diet_id is the CODE column from table DIET_TYPES
+    """
+    # reading .env
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+
+    # read each row from PRODUCTS table and extract the GS1 fields
+    query = ("SELECT id, product_info FROM PRODUCTS")
+    cursor.execute(query)
+    data = cursor.fetchall()
+    for row in data:
+        product_id = row[0]
+        json_data = json.loads(row[1])
+        diet_information_list = re.findall(r"\{.*?\}", find_array(json_data, 'Diet_Information'))
+        print("diet_information_list>>>", diet_information_list)
+        diet_information_codes = list(map(lambda item: int_code_value_from_json(item), diet_information_list))
+        #insert all codes diffrent  than negative to the table PRODUCT_DIETS
+        for code in diet_information_codes:
+            if code > 0:
+                query = ("INSERT INTO PRODUCT_DIETS (product_id, diet_id) VALUES (%s, %s)")
+                cursor.execute(query, (product_id, code))
+                cnx.commit()
+
 
 if __name__ == '__main__':
     # create_csv_report()
     # create_GLN_table()
     # create_category_table()
     # map_category_to_gpc_category()
-    add_columns_to_products_table()
+    # add_columns_to_products_table()
+    populateProductDietsTabel()
 
 
