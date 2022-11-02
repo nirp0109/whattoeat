@@ -258,22 +258,43 @@ def transfrom_allergen_set_to_alis_set(allergens_set:set, alias:dict):
     return result
 
 
-def get_product_info(product_code:str):
+def get_product_info(product_code:str, from_db=False):
     """
     Use the API to get product info using product_code
     :param product_code: str
+    :param from_db: boolean indicate if to load data from DB or use GS1 API
     :return: str JSON of product details (with no media)
     """
-    url = "https://fe.gs1-retailer.mk101.signature-it.com/external/product/{}.json?hq=1".format(product_code)
-    print(url)
-    res = requests.request(method="get", url=url, auth=auth)
-    if res.status_code == 200:
-        return res.text
+    if from_db:
+        # get product_info from Products table using product_code
+        # connect to mysql db
+        (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+        connection = mysql.connector(host=hostname,
+                                        user=user_d,
+                                        password=pass_d,
+                                        db=database)
+        cursor = connection.cursor()
+        sql = "SELECT product_info FROM PRODUCTS WHERE product_code = %s"
+        cursor.execute(sql, (product_code,))
+        result = cursor.fetchone()
+        if result is None:
+            return None
+        else:
+            return result[0]
     else:
-        print(res.status_code, res.text)
-        if res.text and '[' in res.text and ']' in res.text:
-        # print the hebrew of res.text
-            print(res.text[1:-1].encode('utf-8').decode('unicode_escape'))
+
+        # get product_info from GS1 API using product_code
+
+        url = "https://fe.gs1-retailer.mk101.signature-it.com/external/product/{}.json?hq=1".format(product_code)
+        print(url)
+        res = requests.request(method="get", url=url, auth=auth)
+        if res.status_code == 200:
+            return res.text
+        else:
+            print(res.status_code, res.text)
+            if res.text and '[' in res.text and ']' in res.text:
+            # print the hebrew of res.text
+                print(res.text[1:-1].encode('utf-8').decode('unicode_escape'))
 
 
 def get_product_ingrident(product_details:str):
@@ -347,17 +368,18 @@ def extract_allergens_from_ingredients(ingredients:list, allergens:list):
     return  allergen_in_ingredients_set
 
 
-def product_test(product_code:str):
+def product_test(product_code:str, from_db=False):
     """
     create serval tests on specfic product
     :param product_code: str the product_code
+    :param from_db: boolean indicate if to load data from DB or use GS1 API
     :return: list of json - each line a different exception
     """
     record = {}
     results = []
     exception = None
     # load product info
-    product_info = get_product_info(product_code)
+    product_info = get_product_info(product_code, from_db)
     if not product_info:
         print("failed to get product info for {}".format(product_code))
         return
@@ -524,29 +546,49 @@ def find_product_code_by_gtin(gtin:str):
     return  product
 
 
-def get_company_products(gln:str):
+def get_company_products(gln:str, from_db):
     """
     get products codes of a company or manufactur using the GS1 api.
     :param gln: str gln of a company or manufactur
+    :param from_db: bool if True get the products from the db
     :return: list<str>  product codes list
     """
-    products = []
-    # get all products modification in last 120 days
-    url = 'https://fe.gs1-hq.mk101.signature-it.com/external/app_query/select_query.json'
-    body = {"query": "GLN = '{}'".format(gln), "get_chunks": {"start": 0, "rows": 600}}
-    res = requests.request(method="post", url=url, auth=auth, json=body)
-    print(res.status_code)
-    products_temp = find_key(res.text, 'product_code')
-    products.extend(products_temp)
-    print(len(products))
-    while len(products_temp) == 600:
-        body = {"query": "GLN = '{}'".format(gln), "get_chunks": {"start": len(products), "rows": 600}}
+    if from_db:
+        # connect to the mysql database and get the products codes list from Products table using the gln
+        #connect to mysql using the dotenv
+        (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+        db = mysql.connector.connect(
+            host=hostname,
+            user=user_d,
+            password=pass_d,
+            database=database
+        )
+        cursor = db.cursor()
+        query = "SELECT product_code FROM PRODUCTS WHERE gln = '{}'".format(gln)
+        cursor.execute(query)
+        results = cursor.fetchall()
+        cursor.close()
+        db.close()
+        return [item[0] for item in results]
+    else:
+        # get products of company using gln from GS1
+        products = []
+        # get all products modification in last 120 days
+        url = 'https://fe.gs1-hq.mk101.signature-it.com/external/app_query/select_query.json'
+        body = {"query": "GLN = '{}'".format(gln), "get_chunks": {"start": 0, "rows": 600}}
         res = requests.request(method="post", url=url, auth=auth, json=body)
+        print(res.status_code)
         products_temp = find_key(res.text, 'product_code')
-        if len(products_temp) > 0:
-            products.extend(products_temp)
-            print(len(products))
-    return products
+        products.extend(products_temp)
+        print(len(products))
+        while len(products_temp) == 600:
+            body = {"query": "GLN = '{}'".format(gln), "get_chunks": {"start": len(products), "rows": 600}}
+            res = requests.request(method="post", url=url, auth=auth, json=body)
+            products_temp = find_key(res.text, 'product_code')
+            if len(products_temp) > 0:
+                products.extend(products_temp)
+                print(len(products))
+        return products
 
 
 def read_csv(file_name):
@@ -566,7 +608,7 @@ def test_and_add_exception_to_report(product_code:str, writer:csv.DictWriter):
         writer.writerows(results)
 
     return product_code
-def create_report(gln:str = '7290009800005', name=None):
+def create_report(gln:str = '7290009800005', name=None, from_db=False):
     """
     create a report of all products of a company or manufactur
     :param gln: str the company or manufactur gln
@@ -580,10 +622,10 @@ def create_report(gln:str = '7290009800005', name=None):
     with open(report_file_name,'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
-        product_codes = get_company_products(gln)
+        product_codes = get_company_products(gln, from_db)
         # map(lambda x: test_and_add_exception_to_report(x, writer), product_codes)
         for product_code in product_codes:
-            results = product_test(product_code)
+            results = product_test(product_code, from_db)
             if results and len(results) > 0:
                 writer.writerows(results)
 
@@ -813,6 +855,8 @@ if __name__ == '__main__':
     my_group.add_argument('-s', action='store_true', help="create report for the updated products list")
     my_group.add_argument('-a', action='store_true', help="create reports for all companies")
     my_group.add_argument('-d', action='store_true', help="upload all companies products to database")
+    # add optional argument indicting using db instead of GS1 api
+    my_parser.add_argument('-db', action='store_true', help="use db instead of GS1 api")
 
     args = my_parser.parse_args()
     actions = vars(args)
@@ -825,7 +869,7 @@ if __name__ == '__main__':
         download_media_product(product_code[0])
 
     if 'c' in actions and actions['c']:
-        create_report(actions['c'])
+        create_report(actions['c'], from_db=actions['db'])
 
     if 'u' in actions and actions['u']:
         # get updated products list
@@ -889,7 +933,7 @@ if __name__ == '__main__':
         companies = get_companies()
         for company in companies:
             gln, name = company
-            create_report(gln, name)
+            create_report(gln, name, from_db=actions['db'])
 
     if 'd' in actions and actions['d']:
         # get all companies
