@@ -625,7 +625,7 @@ def create_report(gln:str = '7290009800005', name=None, from_db=False):
         product_codes = get_company_products(gln, from_db=from_db)
         # map(lambda x: test_and_add_exception_to_report(x, writer), product_codes)
         for product_code in product_codes:
-            results = product_test(product_code, from_db)
+            results = product_test(product_code, from_db=from_db)
             if results and len(results) > 0:
                 writer.writerows(results)
 
