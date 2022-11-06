@@ -379,7 +379,7 @@ def product_test(product_code:str, from_db=False):
     results = []
     exception = None
     # load product info
-    product_info = get_product_info(product_code, from_db)
+    product_info = get_product_info(product_code, from_db=from_db)
     if not product_info:
         print("failed to get product info for {}".format(product_code))
         return
