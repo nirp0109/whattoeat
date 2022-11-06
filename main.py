@@ -269,7 +269,7 @@ def get_product_info(product_code:str, from_db=False):
         # get product_info from Products table using product_code
         # connect to mysql db
         (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
-        connection = mysql.connector(host=hostname, user=user_d,password=pass_d,  database=database)
+        connection = mysql.connector.connect(host=hostname, user=user_d,password=pass_d,  database=database)
         cursor = connection.cursor()
         sql = "SELECT product_info FROM PRODUCTS WHERE product_code = %s"
         cursor.execute(sql, (product_code,))
