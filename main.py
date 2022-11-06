@@ -622,7 +622,7 @@ def create_report(gln:str = '7290009800005', name=None, from_db=False):
     with open(report_file_name,'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
-        product_codes = get_company_products(gln, from_db)
+        product_codes = get_company_products(gln, from_db=from_db)
         # map(lambda x: test_and_add_exception_to_report(x, writer), product_codes)
         for product_code in product_codes:
             results = product_test(product_code, from_db)
