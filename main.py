@@ -277,7 +277,7 @@ def get_product_info(product_code:str, from_db=False):
         if result is None:
             return None
         else:
-            return result[0]
+            return json.loads(result[0])
     else:
 
         # get product_info from GS1 API using product_code
