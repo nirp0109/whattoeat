@@ -543,7 +543,7 @@ def find_product_code_by_gtin(gtin:str):
     return  product
 
 
-def get_company_products(gln:str, from_db):
+def get_company_products(gln:str, from_db=False):
     """
     get products codes of a company or manufactur using the GS1 api.
     :param gln: str gln of a company or manufactur
