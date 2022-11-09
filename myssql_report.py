@@ -6,6 +6,7 @@ import os
 import sys
 import re
 import json
+from main import get_company_products, get_companies, get_product_info,load_allergens_from_cvs
 
 from dotenv import dotenv_values
 
@@ -365,12 +366,70 @@ def populateProductDietsTabel():
                 cnx.commit()
 
 
+def extract_allergens_from_product_info(product_info):
+    """
+    extract from product_info the following GS1 fields: Allergen_Type_Code_and_Containment, Allergen_Type_Code_and_Containment_May_Contain
+    :param product_info: json
+    :return: allergen_contain_set, allergen_may_contain_set
+    """
+    allergen_contain = find_array(product_info, 'Allergen_Type_Code_and_Containment')
+    allergen_may_contain = find_array(product_info, 'Allergen_Type_Code_and_Containment_May_Contain')
+
+    try:
+        allergen_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_contain))
+    except:
+        allergen_contain_set = set(
+            map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_contain[0])))
+    try:
+        allergen_may_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_may_contain))
+    except:
+        allergen_may_contain_set = set(
+            map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_may_contain[0])))
+
+    return allergen_contain_set, allergen_may_contain_set
+
+
+def get_allergen_name(allergen:str):
+    # load allergens from csv
+    allergens, allergens_dict, allergens_family_dict, allergens_group, alias = load_allergens_from_cvs()
+    if allergen in alias:
+        return alias[allergen]
+    else:
+        return None
+
 if __name__ == '__main__':
     # create_csv_report()
     # create_GLN_table()
     # create_category_table()
     # map_category_to_gpc_category()
     # add_columns_to_products_table()
-    populateProductDietsTabel()
+    # populateProductDietsTabel()
+
+    # get all product of all companies
+    for gln, name in get_companies():
+        print("gln>>>", gln)
+        print("name>>>", name)
+        product_codes = get_company_products(gln, from_db=True)
+        for product_code in product_codes:
+            product_info = get_product_info(product_code, from_db=True)
+            if product_info:
+                allergens = set()
+                # extract allergens from product info from fields Allergen_Type_Code_and_Containment_Contains and Allergen_Type_Code_and_Containment_May_Contain
+                # and them to the set allergens
+                allergen_contain_set, allergen_may_contain_set = extract_allergens_from_product_info(product_info)
+                # add the allergens to the set allergens
+                allergens = allergens.union(allergen_contain_set)
+                allergens = allergens.union(allergen_may_contain_set)
+                # test for each allergen if it have a pretty name in the Allias csv file
+                # if not print the gln, company name, product code and the allergen
+                for allergen in allergens:
+                    if not get_allergen_name(allergen):
+                        print(gln, name, product_code, allergen)
+
+
+
+
+
+
 
 
