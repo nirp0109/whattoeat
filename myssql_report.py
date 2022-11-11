@@ -10,6 +10,8 @@ from main import get_company_products, get_companies, get_product_info,load_alle
 
 from dotenv import dotenv_values
 
+
+allergens, allergens_dict, allergens_family_dict, allergens_group, alias = None, None, None, None, None
 def find_key(somejson, key):
     """
     find key in json and return array of values. use when the value of a key is simple string or number
@@ -390,12 +392,107 @@ def extract_allergens_from_product_info(product_info):
 
 
 def get_allergen_name(allergen:str):
-    # load allergens from csv
-    allergens, allergens_dict, allergens_family_dict, allergens_group, alias = load_allergens_from_cvs()
     if allergen in alias:
         return alias[allergen]
     else:
         return None
+
+
+def read_allergens_from_db():
+    """
+    read from the table ALLERGENS the following fields: id, name
+    :return: allergens_dict
+    """
+    # reading .env
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+
+    # read each row from ALLERGENS table
+    query = ("SELECT id, name FROM ALLERGENS")
+    cursor.execute(query)
+    data = cursor.fetchall()
+    allergens_dict = {}
+    for row in data:
+        allergens_dict[row[1]] = row[0]
+    return allergens_dict
+
+
+def read_products_from_db():
+    """
+    read from the table PRODUCTS the following fields: id, product_code
+    :return: products_dict
+    """
+    # reading .env
+    # reading .env
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+    query = ("SELECT id, product_code FROM PRODUCTS")
+    cursor.execute(query)
+    data = cursor.fetchall()
+    products_dict = {}
+    for row in data:
+        products_dict[row[1]] = row[0]
+
+    return products_dict
+
+
+def insert_product_allergen(allergen_id, product_id, mark_factory=False, approved=False):
+    """
+    insert into the table PRODUCT_ALLERGENS the following fields: name
+    :param allergens_dict: dict
+    :return: None
+    """
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+
+    query = ("INSERT INTO PRODUCT_ALLERGENS (product_id, allergen_id, mark_factory, approved) VALUES (%s, %s, %s, %s)")
+    cursor.execute(query, (product_id, allergen_id, mark_factory, approved))
+    cnx.commit()
 
 if __name__ == '__main__':
     # create_csv_report()
@@ -405,10 +502,16 @@ if __name__ == '__main__':
     # add_columns_to_products_table()
     # populateProductDietsTabel()
 
+
+    # load allergens from csv
+    allergens, allergens_dict, allergens_family_dict, allergens_group, alias = load_allergens_from_cvs()
+    # read Allergens table from database
+    allergens_db = read_allergens_from_db()
+    # read products from database
+    products = read_products_from_db()
+
     # get all product of all companies
     for gln, name in get_companies():
-        print("gln>>>", gln)
-        print("name>>>", name)
         product_codes = get_company_products(gln, from_db=True)
         for product_code in product_codes:
             product_info = get_product_info(product_code, from_db=True)
@@ -425,6 +528,25 @@ if __name__ == '__main__':
                 for allergen in allergens:
                     if not get_allergen_name(allergen):
                         print(gln, name, product_code, allergen)
+                    else:
+                        # insert database at table PRODUCT_ALLERGENS fields allergen_id	product_id	mark_factory	approved
+                        # where allergen_id is the id of the allergen from the table ALLERGENS and product_id is the id of the product from the table PRODUCTS
+                        # mark_factory and approve are False
+                        	
+                        pretty_name = get_allergen_name(allergen)
+                        if pretty_name in allergens_db:
+                            allergen_id = allergens_db[pretty_name]
+                            product_id = products[product_code]
+                            insert_product_allergen(allergen_id, product_id, False, False)
+                        else:
+                            print("allergen not found in database", pretty_name)
+
+
+
+
+#
+
+
 
 
 
