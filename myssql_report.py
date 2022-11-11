@@ -391,6 +391,9 @@ def extract_allergens_from_product_info(product_info):
         allergen_may_contain_set = set(
             map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_may_contain[0])))
 
+    print("allergen_contain_set>>>", allergen_contain_set)
+    print("allergen_may_contain_set>>>", allergen_may_contain_set)
+
     return allergen_contain_set, allergen_may_contain_set
 
 
