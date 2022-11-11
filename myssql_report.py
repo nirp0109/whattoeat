@@ -374,9 +374,12 @@ def extract_allergens_from_product_info(product_info):
     :param product_info: json
     :return: allergen_contain_set, allergen_may_contain_set
     """
+
     allergen_contain = find_array(product_info, 'Allergen_Type_Code_and_Containment')
     allergen_may_contain = find_array(product_info, 'Allergen_Type_Code_and_Containment_May_Contain')
 
+    print("allergen_contain>>>", allergen_contain)
+    print("allergen_may_contain>>>", allergen_may_contain)
     try:
         allergen_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_contain))
     except:
@@ -509,40 +512,46 @@ if __name__ == '__main__':
     products = read_products_from_db()
     print(len(products))
 
-    # get all product of all companies
-    for gln, name in get_companies():
-        print(gln, name)
-        product_codes = get_company_products(gln, from_db=True)
-        for product_code in product_codes:
-            product_info = get_product_info(product_code, from_db=True)
-            if product_info:
-                allergens = set()
-                # extract allergens from product info from fields Allergen_Type_Code_and_Containment_Contains and Allergen_Type_Code_and_Containment_May_Contain
-                # and them to the set allergens
-                allergen_contain_set, allergen_may_contain_set = extract_allergens_from_product_info(product_info)
-                # add the allergens to the set allergens
-                allergens = allergens.union(allergen_contain_set)
-                allergens = allergens.union(allergen_may_contain_set)
-                # test for each allergen if it have a pretty name in the Allias csv file
-                # if not print the gln, company name, product code and the allergen
-                print(len(allergens), len(allergen_contain_set), len(allergen_may_contain_set))
-                for allergen in allergens:
-                    if not get_allergen_name(allergen):
-                        print(gln, name, product_code, allergen)
-                    else:
-                        # insert database at table PRODUCT_ALLERGENS fields allergen_id	product_id	mark_factory	approved
-                        # where allergen_id is the id of the allergen from the table ALLERGENS and product_id is the id of the product from the table PRODUCTS
-                        # mark_factory and approve are False
-                        	
-                        pretty_name = get_allergen_name(allergen)
-                        print(pretty_name)
-                        if pretty_name in allergens_db:
-                            allergen_id = allergens_db[pretty_name]
-                            product_id = products[product_code]
-                            print(allergen_id, product_id)
-                            insert_product_allergen(allergen_id, product_id, False, False)
+    with open('failed.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(['gln', 'name', 'product_code', 'allergen'] )
+
+
+        # get all product of all companies
+        for gln, name in get_companies():
+            print(gln, name)
+            product_codes = get_company_products(gln, from_db=True)
+            for product_code in product_codes:
+                product_info = get_product_info(product_code, from_db=True)
+                if product_info:
+                    allergens = set()
+                    # extract allergens from product info from fields Allergen_Type_Code_and_Containment_Contains and Allergen_Type_Code_and_Containment_May_Contain
+                    # and them to the set allergens
+                    allergen_contain_set, allergen_may_contain_set = extract_allergens_from_product_info(product_info)
+                    # add the allergens to the set allergens
+                    allergens = allergens.union(allergen_contain_set)
+                    allergens = allergens.union(allergen_may_contain_set)
+                    # test for each allergen if it have a pretty name in the Allias csv file
+                    # if not print the gln, company name, product code and the allergen
+                    print(len(allergens), len(allergen_contain_set), len(allergen_may_contain_set))
+                    for allergen in allergens:
+                        if not get_allergen_name(allergen):
+                            writer.writerow([gln, name, product_code, allergen])
+                            print(gln, name, product_code, allergen)
                         else:
-                            print("allergen not found in database", pretty_name)
+                            # insert database at table PRODUCT_ALLERGENS fields allergen_id	product_id	mark_factory	approved
+                            # where allergen_id is the id of the allergen from the table ALLERGENS and product_id is the id of the product from the table PRODUCTS
+                            # mark_factory and approve are False
+
+                            pretty_name = get_allergen_name(allergen)
+                            print(pretty_name)
+                            if pretty_name in allergens_db:
+                                allergen_id = allergens_db[pretty_name]
+                                product_id = products[product_code]
+                                print(allergen_id, product_id)
+                                insert_product_allergen(allergen_id, product_id, False, False)
+                            else:
+                                print("allergen not found in database", pretty_name)
 
 
 
