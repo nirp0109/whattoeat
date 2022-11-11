@@ -525,7 +525,7 @@ if __name__ == '__main__':
                 allergens = allergens.union(allergen_may_contain_set)
                 # test for each allergen if it have a pretty name in the Allias csv file
                 # if not print the gln, company name, product code and the allergen
-                print(len(allergens))
+                print(len(allergens), len(allergen_contain_set), len(allergen_may_contain_set))
                 for allergen in allergens:
                     if not get_allergen_name(allergen):
                         print(gln, name, product_code, allergen)
