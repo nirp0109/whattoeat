@@ -7,7 +7,7 @@ import sys
 import re
 import json
 from main import get_company_products, get_companies, get_product_info,load_allergens_from_cvs
-
+import numpy as np
 from dotenv import dotenv_values
 
 
@@ -459,10 +459,8 @@ def read_products_from_db():
     query = ("SELECT id, product_code FROM PRODUCTS")
     cursor.execute(query)
     data = cursor.fetchall()
-    products_dict = {}
-    for row in data:
-        products_dict[row[1]] = row[0]
-
+    # create a dictionary with product_code as key and id as value using numpy library
+    products_dict = dict(zip(np.array(data)[:, 1], np.array(data)[:, 0]))
     return products_dict
 
 
@@ -509,9 +507,11 @@ if __name__ == '__main__':
     allergens_db = read_allergens_from_db()
     # read products from database
     products = read_products_from_db()
+    print(len(products))
 
     # get all product of all companies
     for gln, name in get_companies():
+        print(gln, name)
         product_codes = get_company_products(gln, from_db=True)
         for product_code in product_codes:
             product_info = get_product_info(product_code, from_db=True)
