@@ -37,6 +37,18 @@ def find_array(somejson, key):
     data= compile_pattern.findall(somejson)
     return data[0]
 
+def find_array_all(somejson, key):
+    """
+    find key in json and return value. use when the value of a key  is array of strings or numbers
+    :param somejson: string json
+    :param key: string key to find
+    :return: list of values founded (json array)
+    """
+    pattern_str = "(?<=\"{}\":\[).+?(?=\])".format(key)
+    compile_pattern = re.compile(pattern_str)
+    data= compile_pattern.findall(somejson)
+    return data
+
 
 def create_csv_report():
     """
@@ -375,8 +387,8 @@ def extract_allergens_from_product_info(product_info):
     :return: allergen_contain_set, allergen_may_contain_set
     """
 
-    allergen_contain = find_array(product_info, 'Allergen_Type_Code_and_Containment')
-    allergen_may_contain = find_array(product_info, 'Allergen_Type_Code_and_Containment_May_Contain')
+    allergen_contain = find_array_all(product_info, 'Allergen_Type_Code_and_Containment')
+    allergen_may_contain = find_array_all(product_info, 'Allergen_Type_Code_and_Containment_May_Contain')
 
     print("allergen_contain>>>", allergen_contain)
     print("allergen_may_contain>>>", allergen_may_contain)
