@@ -390,8 +390,6 @@ def extract_allergens_from_product_info(product_info):
     allergen_contain = find_array_all(product_info, 'Allergen_Type_Code_and_Containment')
     allergen_may_contain = find_array_all(product_info, 'Allergen_Type_Code_and_Containment_May_Contain')
 
-    print("allergen_contain>>>", allergen_contain)
-    print("allergen_may_contain>>>", allergen_may_contain)
     try:
         allergen_contain_set = set(map(lambda item: json.loads(item)['value'], allergen_contain))
     except:
@@ -402,9 +400,6 @@ def extract_allergens_from_product_info(product_info):
     except:
         allergen_may_contain_set = set(
             map(lambda item: json.loads(item)['value'], re.findall(r"\{.*?\}", allergen_may_contain[0])))
-
-    print("allergen_contain_set>>>", allergen_contain_set)
-    print("allergen_may_contain_set>>>", allergen_may_contain_set)
 
     return allergen_contain_set, allergen_may_contain_set
 
@@ -507,7 +502,7 @@ def insert_product_allergen(allergen_id, product_id, mark_factory=False, approve
     cursor = cnx.cursor()
 
     query = ("INSERT INTO PRODUCT_ALLERGENS (allergen_id, product_id, mark_factory,approved) VALUES (%s, %s, %s, %s)")
-    cursor.execute(query, (product_id, allergen_id, mark_factory, approved))
+    cursor.execute(query, (allergen_id, product_id, mark_factory, approved))
     cnx.commit()
 
 if __name__ == '__main__':
