@@ -488,7 +488,7 @@ def insert_product_allergen(allergen_id, product_id, mark_factory=False, approve
     # creating a cursor
     cursor = cnx.cursor()
 
-    query = ("INSERT INTO PRODUCT_ALLERGENS (product_id, allergen_id, mark_factory, approved) VALUES (%s, %s, %s, %s)")
+    query = ("INSERT INTO PRODUCT_ALLERGENS (allergen_id, product_id, mark_factory,approved) VALUES (%s, %s, %s, %s)")
     cursor.execute(query, (product_id, allergen_id, mark_factory, approved))
     cnx.commit()
 
@@ -525,6 +525,7 @@ if __name__ == '__main__':
                 allergens = allergens.union(allergen_may_contain_set)
                 # test for each allergen if it have a pretty name in the Allias csv file
                 # if not print the gln, company name, product code and the allergen
+                print(len(allergens))
                 for allergen in allergens:
                     if not get_allergen_name(allergen):
                         print(gln, name, product_code, allergen)
@@ -534,9 +535,11 @@ if __name__ == '__main__':
                         # mark_factory and approve are False
                         	
                         pretty_name = get_allergen_name(allergen)
+                        print(pretty_name)
                         if pretty_name in allergens_db:
                             allergen_id = allergens_db[pretty_name]
                             product_id = products[product_code]
+                            print(allergen_id, product_id)
                             insert_product_allergen(allergen_id, product_id, False, False)
                         else:
                             print("allergen not found in database", pretty_name)
