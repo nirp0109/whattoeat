@@ -566,7 +566,7 @@ if __name__ == '__main__':
                                 allergen_id = allergens_db[pretty_name]
                                 product_id = products[product_code]
                                 print(allergen_id, product_id)
-                                insert_product_allergen(allergen_id, product_id, False, False)
+                                insert_product_allergen(allergen_id, product_id, True, False)
                             else:
                                 print("allergen not found in database", pretty_name)
 
