@@ -405,6 +405,7 @@ def extract_allergens_from_product_info(product_info):
 
 
 def get_allergen_name(allergen:str):
+    print('search for allergen:{}.'.format(allergen))
     if allergen in alias:
         return alias[allergen]
     else:
@@ -516,6 +517,7 @@ if __name__ == '__main__':
 
     # load allergens from csv
     allergens, allergens_dict, allergens_family_dict, allergens_group, alias = load_allergens_from_cvs()
+    print(alias)
     # read Allergens table from database
     allergens_db = read_allergens_from_db()
     # read products from database
