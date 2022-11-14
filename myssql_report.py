@@ -503,8 +503,13 @@ def insert_product_allergen(allergen_id, product_id, mark_factory=False, approve
     cursor = cnx.cursor()
 
     query = ("INSERT INTO PRODUCT_ALLERGENS (allergen_id, product_id, mark_factory,approved) VALUES (%s, %s, %s, %s)")
-    cursor.execute(query, (allergen_id, product_id, mark_factory, approved))
-    cnx.commit()
+    # execute the query and commit the changes on try block
+    try:
+        cursor.execute(query, (allergen_id, product_id, mark_factory, approved))
+        cnx.commit()
+    except mysql.connector.Error as err:
+        print(err)
+        cnx.rollback()
 
 if __name__ == '__main__':
     # create_csv_report()
