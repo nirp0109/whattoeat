@@ -11,6 +11,7 @@ import string
 from dotenv import dotenv_values
 from itertools import combinations
 import mysql.connector
+from mysql.connector import errorcode
 import os
 import sys
 
@@ -29,7 +30,42 @@ VEGAN = 5521
 
 # Product_Shelf_Life - product life span
 # Product_Status - product status (status in hebrew as json)
+def read_allergens_from_db():
+    """
+    read from the table ALLERGENS the following fields: id, name
+    :return: allergens_dict
+    """
+    # reading .env
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
 
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+
+    # read each row from ALLERGENS table
+    query = ("SELECT id, name FROM ALLERGENS")
+    cursor.execute(query)
+    data = cursor.fetchall()
+    allergens_dict = {}
+    for row in data:
+        allergens_dict[row[1]] = row[0]
+    return allergens_dict
+
+
+# read Allergens table from database
+allergens_db = read_allergens_from_db()
 
 def find_key(somejson, key):
     """
@@ -693,6 +729,13 @@ def inquire_GS1_fields():
     pretty_json(res.text)
 
 
+def get_allergen_name(allergen:str, alias:dict):
+    print('search for allergen:{}.'.format(allergen))
+    if allergen in alias:
+        return alias[allergen]
+    else:
+        return None
+
 def store_product_info(product_info, gln, db_user, db_password, db_name, db_host):
     """
     create table of products info if table is not exist and store the product info in it
@@ -795,6 +838,27 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
             mycursor.execute(sql, val)
             mydb.commit()
             print(mycursor.rowcount, "record inserted.")
+
+    #insert allergen information into PRODUCT_ALLERGENS table where product_id is the id of the product in PRODUCTS table
+    sql ="INSERT INTO PRODUCT_ALLERGENS (allergen_id, product_id, mark_factory,approved) VALUES (%s, %s, %s, %s)"
+    _, _, _, _, alias = load_allergens_from_cvs()
+    # add the allergens to the set allergens
+    allergens = set()
+    allergens = allergens.union(allergen_contain_set)
+    allergens = allergens.union(allergen_may_contain_set)
+    for allergen in allergens:
+        if  get_allergen_name(allergen, alias) is not None:
+            pretty_name = get_allergen_name(allergen, alias)
+            print(pretty_name)
+            if pretty_name in allergens_db:
+                allergen_id = allergens_db[pretty_name]
+                val = (allergen_id, product_id, 1, 0)
+                try:
+                    mycursor.execute(sql, val)
+                    mydb.commit()
+                    print(mycursor.rowcount, "allergen record inserted.")
+                except:
+                    pass
 
 
 
