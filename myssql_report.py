@@ -553,8 +553,17 @@ if __name__ == '__main__':
                     print(len(allergens), len(allergen_contain_set), len(allergen_may_contain_set))
                     for allergen in allergens:
                         if not get_allergen_name(allergen):
-                            writer.writerow([gln, name, product_code, allergen])
-                            print(gln, name, product_code, allergen)
+                            # test if the allergen is in DB
+                            if allergen in allergens_db:
+                                # get allergen id from DB
+                                allergen_id = allergens_db[allergen]
+                                # get product id from DB
+                                product_id = products[product_code]
+                                # insert into PRODUCT_ALLERGENS table
+                                insert_product_allergen(allergen_id, product_id, True, False)
+                            else:
+                                print(gln, name, product_code, allergen)
+                                writer.writerow([gln, name, product_code, allergen])
                         else:
                             # insert database at table PRODUCT_ALLERGENS fields allergen_id	product_id	mark_factory	approved
                             # where allergen_id is the id of the allergen from the table ALLERGENS and product_id is the id of the product from the table PRODUCTS
