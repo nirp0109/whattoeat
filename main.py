@@ -60,7 +60,7 @@ def read_allergens_from_db():
     data = cursor.fetchall()
     allergens_dict = {}
     for row in data:
-        allergens_dict[row[1]] = row[0]
+        allergens_dict[str(row[1]).strip()] = row[0]
     return allergens_dict
 
 
@@ -847,6 +847,7 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
     allergens = allergens.union(allergen_contain_set)
     allergens = allergens.union(allergen_may_contain_set)
     for allergen in allergens:
+        allergen = allergen.strip()
         if  get_allergen_name(allergen, alias) is not None:
             pretty_name = get_allergen_name(allergen, alias)
             print(pretty_name)
@@ -859,7 +860,17 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
                     print(mycursor.rowcount, "allergen record inserted.")
                 except:
                     pass
-
+        else:
+            if allergen in allergens_db:
+                # get allergen id from DB
+                allergen_id = allergens_db[allergen]
+                val = (allergen_id, product_id, 1, 0)
+                try:
+                    mycursor.execute(sql, val)
+                    mydb.commit()
+                    print(mycursor.rowcount, "allergen record inserted.")
+                except:
+                    pass
 
 
 def get_products_exist_in_db(gln, db_user, db_password, db_name, db_host):
