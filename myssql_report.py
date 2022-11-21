@@ -442,7 +442,7 @@ def read_allergens_from_db():
     data = cursor.fetchall()
     allergens_dict = {}
     for row in data:
-        allergens_dict[row[1]] = row[0]
+        allergens_dict[str(row[1]).strip()] = row[0]
     return allergens_dict
 
 
@@ -552,6 +552,7 @@ if __name__ == '__main__':
                     # if not print the gln, company name, product code and the allergen
                     print(len(allergens), len(allergen_contain_set), len(allergen_may_contain_set))
                     for allergen in allergens:
+                        allergen = allergen.strip()
                         if not get_allergen_name(allergen):
                             # test if the allergen is in DB
                             if allergen in allergens_db:
