@@ -760,9 +760,10 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
 
     fields = ['Short_Description', 'BrandName', 'Sub_Brand_Name', 'Ingredients']
     field_values = []
+    fieldMap = {'Short_Description': 'Short_Description', 'BrandName': 'Brand_Name', 'Sub_Brand_Name': 'Sub_Brand_Name','Ingredients': 'Ingredient_Sequence_and_Name'}
     for field in fields:
         try:
-            val = find_key(product_info, field)
+            val = find_key(product_info, fieldMap[field])
             if type(val) == list:
                 if len(val) == 0:
                     field_values.append('')
@@ -771,7 +772,7 @@ def store_product_info(product_info, gln, db_user, db_password, db_name, db_host
             else:
                 field_values.append(val)
         except:
-            val = find_array(product_info, field)[0]
+            val = find_array(product_info, fieldMap[field])[0]
             if type(val) == list:
                 if len(val) == 0:
                     field_values.append('')
@@ -1057,4 +1058,4 @@ if __name__ == '__main__':
 
 
 
-    inquire_GS1_fields()
+    # inquire_GS1_fields()
