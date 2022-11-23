@@ -231,7 +231,7 @@ def add_columns_to_products_table():
     """
     read json from table PRODUCTS at column product_info
     extract from it the following GS1 fields: Short_Description, BrandName, Sub_Brand_Name, Ingredient_Sequence_and_Name, Allergen_Type_Code_and_Containment, Allergen_Type_Code_and_Containment_May_Contain
-    and add them in them same order to the table PRODUCTS as Short_Description, Brand_Name, Sub_Brand_Name, Ingredients, Allergens_Contain, Allergens_May_Contain
+    and add them in them same order to the table PRODUCTS as Short_Description, Brand_Name, Sub_add_columns_to_products_tableBrand_Name, Ingredients, Allergens_Contain, Allergens_May_Contain
     """
     # reading .env
     (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
@@ -253,37 +253,37 @@ def add_columns_to_products_table():
     cursor = cnx.cursor()
 
     # read each row from PRODUCTS table and extract the GS1 fields
-    query = ("SELECT id, product_info FROM PRODUCTS")
+    query = ("SELECT id, product_info FROM PRODUCTS where Ingredient_Sequence_and_Name=''")
     cursor.execute(query)
     data = cursor.fetchall()
     for row in data:
         product_id = row[0]
         json_data = json.loads(row[1])
         short_description, brand_name, sub_brand_name, ingredients, allergens_contain, allergens_may_contain = '', '', '', '', '', ''
-        # fields = ['Short_Description', 'BrandName' ,'Sub_Brand_Name', 'Ingredient_Sequence_and_Name']
+        fields = ['Ingredient_Sequence_and_Name']
 
         field_values = []
-        # for field in fields:
-        #     try:
-        #         val = find_key(json_data, field)
-        #         if type(val) == list:
-        #             if len(val) == 0:
-        #                 field_values.append('')
-        #             else:
-        #                 field_values.append(val[0])
-        #         else:
-        #             field_values.append(val)
-        #     except:
-        #         val = find_array(json_data, field)[0]
-        #         if type(val) == list:
-        #             if len(val) == 0:
-        #                 field_values.append('')
-        #             else:
-        #                 field_values.append(val[0])
-        #         else:
-        #             field_values.append(val)
-        #
-        #
+        for field in fields:
+            try:
+                val = find_key(json_data, field)
+                if type(val) == list:
+                    if len(val) == 0:
+                        field_values.append('')
+                    else:
+                        field_values.append(val[0])
+                else:
+                    field_values.append(val)
+            except:
+                val = find_array(json_data, field)[0]
+                if type(val) == list:
+                    if len(val) == 0:
+                        field_values.append('')
+                    else:
+                        field_values.append(val[0])
+                else:
+                    field_values.append(val)
+
+
         # pattern_str = "(?<=\"{}\":\[).+?(?=\])".format('Allergen_Type_Code_and_Containment')
         # compile_pattern = re.compile(pattern_str)
         # allergen_contain = compile_pattern.findall(json_data)
@@ -311,23 +311,23 @@ def add_columns_to_products_table():
         # field_values.append(','.join(pretty_alleregen_may_contain))
 
         # insert the GS1 fields in the same order to the table PRODUCTS
-        val = find_array(json_data, 'Product_Status')
-        if val and len(val) > 0:
-            json_value = json.loads(val)
-            field_values.append(json_value['code'])
-            status_int = int(json_value['code'])
-            # active is 1 if status is 6303
-            if status_int == 6303:
-                field_values.append(1)
-            else:
-                field_values.append(0)
-        else:
-            field_values.append(0)
-            field_values.append(0)
+        # val = find_array(json_data, 'Product_Status')
+        # if val and len(val) > 0:
+        #     json_value = json.loads(val)
+        #     field_values.append(json_value['code'])
+        #     status_int = int(json_value['code'])
+        #     # active is 1 if status is 6303
+        #     if status_int == 6303:
+        #         field_values.append(1)
+        #     else:
+        #         field_values.append(0)
+        # else:
+        #     field_values.append(0)
+        #     field_values.append(0)
 
         field_values.append(product_id)
         # query = ("UPDATE PRODUCTS SET Short_Description=%s, Brand_Name=%s, Sub_Brand_Name=%s, Ingredients=%s, Allergens_Contain=%s, Allergens_May_Contain=%s WHERE id=%s")
-        query = ("UPDATE PRODUCTS SET Product_Status=%s, Active=%s WHERE id=%s")
+        query = ("UPDATE PRODUCTS SET Ingredients=%s WHERE id=%s")
         cursor.execute(query, field_values)
         cnx.commit()
 
@@ -516,71 +516,71 @@ if __name__ == '__main__':
     # create_GLN_table()
     # create_category_table()
     # map_category_to_gpc_category()
-    # add_columns_to_products_table()
+    add_columns_to_products_table()
     # populateProductDietsTabel()
 
 
-    # load allergens from csv
-    allergens, allergens_dict, allergens_family_dict, allergens_group, alias = load_allergens_from_cvs()
-    print(alias)
-    # read Allergens table from database
-    allergens_db = read_allergens_from_db()
-    # read products from database
-    products = read_products_from_db()
-    print(len(products))
-
-    with open('failed.csv', 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, delimiter=',')
-        writer.writerow(['gln', 'name', 'product_code', 'allergen'] )
-
-
-        # get all product of all companies
-        for gln, name in get_companies():
-            print(gln, name)
-            product_codes = get_company_products(gln, from_db=True)
-            for product_code in product_codes:
-                product_info = get_product_info(product_code, from_db=True)
-                if product_info:
-                    allergens = set()
-                    # extract allergens from product info from fields Allergen_Type_Code_and_Containment_Contains and Allergen_Type_Code_and_Containment_May_Contain
-                    # and them to the set allergens
-                    allergen_contain_set, allergen_may_contain_set = extract_allergens_from_product_info(product_info)
-                    # add the allergens to the set allergens
-                    allergens = allergens.union(allergen_contain_set)
-                    allergens = allergens.union(allergen_may_contain_set)
-                    # test for each allergen if it have a pretty name in the Allias csv file
-                    # if not print the gln, company name, product code and the allergen
-                    print(len(allergens), len(allergen_contain_set), len(allergen_may_contain_set))
-                    for allergen in allergens:
-                        allergen = allergen.strip()
-                        if not get_allergen_name(allergen):
-                            # test if the allergen is in DB
-                            if allergen in allergens_db:
-                                # get allergen id from DB
-                                allergen_id = allergens_db[allergen]
-                                # get product id from DB
-                                product_id = products[product_code]
-                                # insert into PRODUCT_ALLERGENS table
-                                insert_product_allergen(allergen_id, product_id, True, False)
-                            else:
-                                print(gln, name, product_code, allergen)
-                                writer.writerow([gln, name, product_code, allergen])
-                        else:
-                            # insert database at table PRODUCT_ALLERGENS fields allergen_id	product_id	mark_factory	approved
-                            # where allergen_id is the id of the allergen from the table ALLERGENS and product_id is the id of the product from the table PRODUCTS
-                            # mark_factory and approve are False
-
-                            pretty_name = get_allergen_name(allergen)
-                            print(pretty_name)
-                            if pretty_name in allergens_db:
-                                allergen_id = allergens_db[pretty_name]
-                                product_id = products[product_code]
-                                print(allergen_id, product_id)
-                                insert_product_allergen(allergen_id, product_id, True, False)
-                            else:
-                                print("allergen not found in database", pretty_name)
-
-
+    # # load allergens from csv
+    # allergens, allergens_dict, allergens_family_dict, allergens_group, alias = load_allergens_from_cvs()
+    # print(alias)
+    # # read Allergens table from database
+    # allergens_db = read_allergens_from_db()
+    # # read products from database
+    # products = read_products_from_db()
+    # print(len(products))
+    #
+    # with open('failed.csv', 'w', newline='') as csvfile:
+    #     writer = csv.writer(csvfile, delimiter=',')
+    #     writer.writerow(['gln', 'name', 'product_code', 'allergen'] )
+    #
+    #
+    #     # get all product of all companies
+    #     for gln, name in get_companies():
+    #         print(gln, name)
+    #         product_codes = get_company_products(gln, from_db=True)
+    #         for product_code in product_codes:
+    #             product_info = get_product_info(product_code, from_db=True)
+    #             if product_info:
+    #                 allergens = set()
+    #                 # extract allergens from product info from fields Allergen_Type_Code_and_Containment_Contains and Allergen_Type_Code_and_Containment_May_Contain
+    #                 # and them to the set allergens
+    #                 allergen_contain_set, allergen_may_contain_set = extract_allergens_from_product_info(product_info)
+    #                 # add the allergens to the set allergens
+    #                 allergens = allergens.union(allergen_contain_set)
+    #                 allergens = allergens.union(allergen_may_contain_set)
+    #                 # test for each allergen if it have a pretty name in the Allias csv file
+    #                 # if not print the gln, company name, product code and the allergen
+    #                 print(len(allergens), len(allergen_contain_set), len(allergen_may_contain_set))
+    #                 for allergen in allergens:
+    #                     allergen = allergen.strip()
+    #                     if not get_allergen_name(allergen):
+    #                         # test if the allergen is in DB
+    #                         if allergen in allergens_db:
+    #                             # get allergen id from DB
+    #                             allergen_id = allergens_db[allergen]
+    #                             # get product id from DB
+    #                             product_id = products[product_code]
+    #                             # insert into PRODUCT_ALLERGENS table
+    #                             insert_product_allergen(allergen_id, product_id, True, False)
+    #                         else:
+    #                             print(gln, name, product_code, allergen)
+    #                             writer.writerow([gln, name, product_code, allergen])
+    #                     else:
+    #                         # insert database at table PRODUCT_ALLERGENS fields allergen_id	product_id	mark_factory	approved
+    #                         # where allergen_id is the id of the allergen from the table ALLERGENS and product_id is the id of the product from the table PRODUCTS
+    #                         # mark_factory and approve are False
+    #
+    #                         pretty_name = get_allergen_name(allergen)
+    #                         print(pretty_name)
+    #                         if pretty_name in allergens_db:
+    #                             allergen_id = allergens_db[pretty_name]
+    #                             product_id = products[product_code]
+    #                             print(allergen_id, product_id)
+    #                             insert_product_allergen(allergen_id, product_id, True, False)
+    #                         else:
+    #                             print("allergen not found in database", pretty_name)
+    #
+    #
 
 
 #
