@@ -253,7 +253,7 @@ def add_columns_to_products_table():
     cursor = cnx.cursor()
 
     # read each row from PRODUCTS table and extract the GS1 fields
-    query = ("SELECT id, product_info FROM PRODUCTS where Ingredient_Sequence_and_Name=''")
+    query = ("SELECT id, product_info FROM PRODUCTS where Ingredients=''")
     cursor.execute(query)
     data = cursor.fetchall()
     for row in data:
