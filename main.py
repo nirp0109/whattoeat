@@ -583,7 +583,7 @@ def get_company_products(gln:str, from_db=False):
     """
     get products codes of a company or manufactur using the GS1 api.
     :param gln: str gln of a company or manufactur
-    :param from_db: bool if True get the products from the db
+    :param from_db: bool if True get the products from the db that are active
     :return: list<str>  product codes list
     """
     if from_db:
