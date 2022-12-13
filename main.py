@@ -597,7 +597,7 @@ def get_company_products(gln:str, from_db=False):
             database=database
         )
         cursor = db.cursor()
-        query = "SELECT product_code FROM PRODUCTS WHERE gln = '{}'".format(gln)
+        query = "SELECT product_code FROM PRODUCTS WHERE gln = '{}' and Active=1".format(gln)
         cursor.execute(query)
         results = cursor.fetchall()
         cursor.close()
