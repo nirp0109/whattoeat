@@ -478,9 +478,8 @@ def populateNutritionTable():
     for row in data:
         product_id = row[0]
         json_data = json.loads(row[1])
-        nutrition = find_array(json_data, 'Nutritional_Values')
+        nutrition = json_data['Nutritional_Values']
         if nutrition:
-            nutrition = nutrition[0]
             query = ("UPDATE PRODUCTS SET NUTRITION = %s WHERE id = %s")
             cursor.execute(query, (nutrition, product_id))
             cnx.commit()
