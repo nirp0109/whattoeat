@@ -446,6 +446,53 @@ def read_allergens_from_db():
     return allergens_dict
 
 
+def populateNutritionTable():
+    """
+        read jsons from table PRODUCTS at column product_info
+        extract from it the  GS1 field: Nutritional_Values
+        and update the table PRODUCTS colum NUTRITION with the value of the field
+    """
+    # reading .env
+    (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
+
+    # connecting to the database
+    try:
+        cnx = mysql.connector.connect(user=user_d, password=pass_d, host=hostname, database=database)
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        sys.exit(1)
+
+    # creating a cursor
+    cursor = cnx.cursor()
+
+    # read each row from PRODUCTS table and extract the GS1 fields
+    query = ("SELECT id, product_info FROM PRODUCTS")
+    cursor.execute(query)
+    data = cursor.fetchall()
+    for row in data:
+        product_id = row[0]
+        json_data = json.loads(row[1])
+        nutrition = find_array(json_data, 'Nutritional_Values')
+        if nutrition:
+            nutrition = nutrition[0]
+            query = ("UPDATE PRODUCTS SET NUTRITION = %s WHERE id = %s")
+            cursor.execute(query, (nutrition, product_id))
+            cnx.commit()
+        else:
+            print('product_id:{} has no nutrition field'.format(product_id))
+
+
+
+
+
+
+
 def read_products_from_db():
     """
     read from the table PRODUCTS the following fields: id, product_code
@@ -480,9 +527,11 @@ def read_products_from_db():
 
 def insert_product_allergen(allergen_id, product_id, mark_factory=False, approved=False):
     """
-    insert into the table PRODUCT_ALLERGENS the following fields: name
-    :param allergens_dict: dict
-    :return: None
+    insert into the table PRODUCT_ALLERGENS the following fields: allergen_id, product_id, mark_factory, approved
+    :param allergen_id: int representing the id of the allergen
+    :param product_id: int representing the id of the product
+    :param mark_factory: bool representing if the allergen is marked by the factory
+    :param approved: bool representing if the allergen is approved by the admin
     """
     (user, password, user_d, pass_d, hostname, database) = dotenv_values('.env').values()
 
@@ -516,8 +565,9 @@ if __name__ == '__main__':
     # create_GLN_table()
     # create_category_table()
     # map_category_to_gpc_category()
-    add_columns_to_products_table()
+    # add_columns_to_products_table()
     # populateProductDietsTabel()
+    populateNutritionTable()
 
 
     # # load allergens from csv
