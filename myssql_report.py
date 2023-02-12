@@ -478,7 +478,7 @@ def populateNutritionTable():
     for row in data:
         product_id = row[0]
         product_info = row[1]
-        nutrition = json.loads(product_info)['Nutritional_Values']
+        nutrition = json.loads(product_info)[0]['Nutritional_Values']
         if nutrition:
             query = ("UPDATE PRODUCTS SET NUTRITION = %s WHERE id = %s")
             cursor.execute(query, (nutrition, product_id))
