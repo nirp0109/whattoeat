@@ -477,10 +477,12 @@ def populateNutritionTable():
     data = cursor.fetchall()
     for row in data:
         product_id = row[0]
-        product_info = row[1]
+        row_data = row[1]
+        row_json = json.loads(row_data)
         try:
-            print('product_info:{}'.format(json.loads(product_info)))
-            nutrition = json.loads(product_info)[0]['product_info']['Nutritional_Values']
+            json_1ist = json.loads(row_json)
+            product_info = json_1ist[0]['product_info']
+            nutrition = product_info['Nutritional_Values']
         except:
             nutrition = None
         if nutrition:

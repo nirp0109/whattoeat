@@ -45,7 +45,28 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\allergens_gs1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\allergens_may_gs1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\allergens_orig.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\diet.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -60,6 +81,13 @@
           </value>
         </entry>
         <entry key="\food.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\statuses.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
