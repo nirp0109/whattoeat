@@ -487,7 +487,7 @@ def populateNutritionTable():
             nutrition = None
         if nutrition:
             query = ("UPDATE PRODUCTS SET NUTRITION = %s WHERE id = %s")
-            cursor.execute(query, (nutrition, product_id))
+            cursor.execute(query, (json.dumps(nutrition), product_id))
             cnx.commit()
         else:
             print('product_id:{} has no nutrition field'.format(product_id))
